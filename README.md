@@ -1,65 +1,46 @@
-# ServeMATE by Resence
+# ACTA by Resence
 
-### Small Contributions. Real Impact.
+### Small Acts, Big Impacts.
 
-🌐 Live Website: https://www.resence.in
+🌐 Live Website: https://acta.resence.in (Ecosystem: https://www.resence.in)
 
-ServeMATE is a social impact platform that helps people contribute to meaningful causes through transparency, community engagement, gamification, and AI-powered guidance.
+ACTA is a proof-verified micro-giving and civic tech platform that empowers students to make ₹10+ micro-donations to verified NGOs with 100% video-proof accountability, escrow milestones, and gamified engagement.
 
-Many people want to help but often lose trust, motivation, or visibility into the impact of their contributions. ServeMATE aims to solve this by creating a more engaging and transparent experience where users can participate consistently and understand the difference they are making.
+Many people want to help but often lose trust, motivation, or visibility into the impact of their contributions. ACTA solves this by creating a public proof ledger where every micro-donation is held in escrow until ground-verified execution is confirmed within 96 hours via geotagged video proof.
 
-## What ServeMATE Offers
+## What ACTA Offers
 
-* Contribution tracking
-* NGO participation system
-* Community engagement
-* Gamification and leaderboards
-* Impact visibility
-* User dashboards
-* Razorpay integration
-* ServeMATE AI Advisor
+* **₹10+ UPI Micro-Giving:** 0% MDR UPI micro-donations enabling everyday student participation
+* **Milestone Escrow:** Funds released to NGOs only after in-app geotagged proof is validated
+* **96-Hour Proof SLA:** Mandatory field video verification with DPDP Act-compliant privacy
+* **Public Proof Ledger:** Transparent, immutable record of verified civic deeds (Acta)
+* **Gamification & Community:** Impact score, streaks, badges, and campus leaderboards
+* **ACTA AI Advisor:** Multimodal intelligent guidance powered by Google Gemini AI
+* **Dual B2C / B2B Ecosystem:** Student micro-giving combined with enterprise CSR compliance dashboards
 
-## ServeMATE AI Advisor
+## ACTA AI Advisor
 
-ServeMATE AI Advisor is an AI-powered feature that helps users better understand their impact journey.
-
-Users can:
-
-* Explore causes aligned with their interests
-* Receive personalized guidance
-* Generate impact plans
-* Understand how consistent contributions can create meaningful change
-* Stay motivated through AI-powered recommendations
-
-Powered by Google Gemini AI.
-
-## Why ServeMATE?
-
-Traditional giving platforms often focus only on transactions.
-
-ServeMATE focuses on engagement, transparency, and long-term participation by helping users stay connected to the causes they support.
-
-We believe that meaningful change doesn't require massive contributions.
-
-It starts with consistent action.
+The ACTA AI Advisor helps users better understand their impact journey:
+* Explore verified causes aligned with their interests
+* Receive personalized impact guidance and actionable plans
+* Understand how consistent micro-acts create systemic change
+* Stay motivated through milestone recommendations
 
 ## Technology Stack
 
-* HTML
-* CSS
-* JavaScript
-* Node.js
-* Express.js
-* Google Gemini AI
-* Razorpay
-* Vercel
+* **Frontend:** React / Vite / Tailwind CSS
+* **Backend:** Node.js, Express.js
+* **Database & Auth:** MongoDB / Supabase
+* **Payments:** Razorpay (UPI 0% MDR integration)
+* **AI Engine:** Google Gemini API
+* **Monitoring & Analytics:** Sentry Node, Vercel Analytics
 
 ## Vision
 
-To build a future where social impact is accessible, transparent, and engaging for everyone.
+To turn everyday compassion into an accountable, transparent, and rewarding daily habit for India's youth.
 
-### Small Contributions. Real Impact.
+### Small Acts, Big Impacts.
 
 ---
 
-Built by Piyush Singh
+Built with pride by **Piyush Singh** & the Resence team.
