@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;display=swap');
+      .brand-title {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 140px;
+        font-weight: 800;
+        fill: #0F172A;
+        letter-spacing: -2px;
+      }
+      .brand-tagline {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 27px;
+        font-weight: 600;
+        fill: #1E293B;
+        letter-spacing: 0.5px;
+      }
+    </style>
+  </defs>
+
+  <!-- Clean Off-White Background (Matches Studio Canvas) -->
+  <rect width="800" height="360" fill="#EBEEF0"/>
+
+  <!-- Centered Typographic Lockup -->
+  <!-- Wordmark: ACTA -->
+  <text x="400" y="195" text-anchor="middle" class="brand-title">ACTA</text>
+
+  <!-- Tagline: Small Acts. Big Impact. -->
+  <text x="400" y="255" text-anchor="middle" class="brand-tagline">Small Acts. Big Impact.</text>
+</svg>
