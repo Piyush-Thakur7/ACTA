@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ACTA by Resence — Master Product Requirements Document (PRD) & System Specification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 14mm 16mm 14mm 16mm;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #0F172A; background-color: #FFFFFF; line-height: 1.48; font-size: 9pt;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-section {
+    page-break-after: always;
+    break-after: page;
+    min-height: 260mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #E2E8F0;
+    padding-bottom: 5px;
+    margin-bottom: 14px;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748B;
+    font-weight: 600;
+  }
+  .header-bar .brand { color: #0F172A; font-weight: 800; }
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #E2E8F0;
+    padding-top: 5px;
+    margin-top: 14px;
+    font-size: 7.5pt;
+    color: #94A3B8;
+  }
+  .brand-badge {
+    background: #0F172A;
+    color: #FFFFFF;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 9.5pt;
+    letter-spacing: 2px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .doc-tag { font-size: 8pt; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 700; }
+  .cover-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E2E8F0; padding-bottom: 16px; margin-bottom: 24px; }
+  .hero-h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 38pt; font-weight: 800; letter-spacing: -1.5px; line-height: 1.05; color: #0F172A; margin-bottom: 8px; }
+  .hero-h1 span { color: #059669; }
+  .hero-sub { font-family: 'Space Grotesk', sans-serif; font-size: 16pt; color: #334155; font-weight: 600; margin-bottom: 18px; letter-spacing: -0.5px; }
+  .hero-paragraph { font-size: 10.5pt; color: #475569; line-height: 1.55; margin-bottom: 24px; }
+  .pill-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .pill-item { background: #F1F5F9; color: #334155; font-size: 7.8pt; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid #E2E8F0; }
+  .pill-item.green { background: #ECFDF5; color: #065F46; border-color: #A7F3D0; }
+  .pill-item.blue { background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE; }
+  .pill-item.amber { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
+  .meta-table-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .meta-col h6 { font-size: 7pt; text-transform: uppercase; color: #64748B; letter-spacing: 1px; margin-bottom: 2px; }
+  .meta-col p { font-size: 9pt; font-weight: 600; color: #0F172A; }
+  h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15pt; font-weight: 800; color: #0F172A; letter-spacing: -0.4px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1.5px solid #E2E8F0; }
+  h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10.5pt; font-weight: 700; color: #1E293B; margin-top: 10px; margin-bottom: 5px; letter-spacing: -0.2px; }
+  h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9.5pt; font-weight: 700; color: #334155; margin-top: 8px; margin-bottom: 4px; }
+  p { margin-bottom: 6px; color: #334155; line-height: 1.45; }
+  ul, ol { margin-left: 18px; margin-bottom: 8px; color: #334155; }
+  li { margin-bottom: 3px; }
+  strong { color: #0F172A; font-weight: 600; }
+  .card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 8.5pt; }
+  .card-highlight, .card-emerald { background: #F0FDF4; border-left: 4px solid #059669; border-color: #E2E8F0 #E2E8F0 #E2E8F0 #059669; }
+  .card-blue { background: #F8FAFC; border-left: 4px solid #2563EB; border-color: #E2E8F0 #E2E8F0 #E2E8F0 #2563EB; }
+  .card-amber { background: #FFFBEB; border-left: 4px solid #D97706; border-color: #E2E8F0 #E2E8F0 #E2E8F0 #D97706; }
+  .card-rose { background: #FFF1F2; border-left: 4px solid #E11D48; border-color: #E2E8F0 #E2E8F0 #E2E8F0 #E11D48; }
+  .card-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 9pt; color: #0F172A; margin-bottom: 3px; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 10px 0; font-size: 7.8pt; line-height: 1.35; }
+  th { background: #0F172A; color: #FFFFFF; text-align: left; padding: 6px 8px; font-weight: 600; font-size: 7.5pt; letter-spacing: 0.5px; }
+  td { padding: 5px 8px; border-bottom: 1px solid #E2E8F0; color: #334155; vertical-align: top; }
+  tr:nth-child(even) td { background: #F8FAFC; }
+  .code-block, .wireframe {
+    background: #0F172A;
+    color: #F8FAFC;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 7.2pt;
+    line-height: 1.3;
+    margin: 6px 0 8px 0;
+    white-space: pre;
+    overflow-x: hidden;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+  .stat-card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px; text-align: center; }
+  .stat-val { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14pt; font-weight: 800; color: #059669; }
+  .stat-lbl { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.5px; color: #64748B; font-weight: 600; }
+  code { background: #F1F5F9; color: #0F172A; padding: 1px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 8pt; }
+</style>
+</head>
+<body>
+
+<!-- SECTION 1: COVER PAGE -->
+<div class="page-section">
+  <div>
+    <div class="cover-top">
+      <div class="brand-badge">RESENCE ECOSYSTEM</div>
+      <div class="doc-tag">INTERNAL TEAM MASTER BIBLE • SSOT V2.5</div>
+    </div>
+    <div class="hero-h1">ACTA <span>by Resence</span></div>
+    <div class="hero-sub">Small Acts, Big Impacts.</div>
+    <div class="hero-paragraph">
+      The Complete Master Product Requirements Document (PRD) & Implementation Architecture Specification. Designed as the internal core engineering bible for prototype development, payment & escrow lifecycle, ground verification telemetry, failure recovery, pitch scripts, and the Bharat Udyam Sangam 2026 incubation conclave at GLBCRI.
+    </div>
+    <div class="pill-group">
+      <div class="pill-item green">0% MDR UPI Micro-Giving (₹10+)</div>
+      <div class="pill-item blue">Milestone Escrow Vault Engine</div>
+      <div class="pill-item amber">Dynamic SLAs (96h Food / 7-10d Kits)</div>
+      <div class="pill-item green">Offline Video Sync (IndexedDB)</div>
+      <div class="pill-item blue">90/10 NGO Split Accounting</div>
+      <div class="pill-item">DPDP Act 2023 Compliant</div>
+      <div class="pill-item green">Human-in-the-Loop Gemini AI</div>
+      <div class="pill-item">Balanced Action XP Gamification</div>
+    </div>
+    <div class="meta-table-box">
+      <div class="meta-col"><h6>Founder & Architect</h6><p>Piyush Singh (CEO, Resence)</p></div>
+      <div class="meta-col"><h6>Academic Standing</h6><p>BCA 2nd Year, GL Bajaj (GLBIM)</p></div>
+      <div class="meta-col"><h6>Target Conclave</h6><p>Bharat Udyam Sangam 2026 (GLBCRI)</p></div>
+      <div class="meta-col"><h6>Document Classification</h6><p>Production-Ready PRD & Architecture</p></div>
+      <div class="meta-col"><h6>Pilot Hub</h6><p>Greater Noida & Delhi NCR Hub</p></div>
+      <div class="meta-col"><h6>Technical Standard</h6><p>Supabase + Node 22 + React 18 PWA</p></div>
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span>CONFIDENTIAL & PROPRIETARY — RESENCE TECH LABS</span>
+    <span>DOCUMENT CLASSIFICATION: SSOT V2.5</span>
+  </div>
+</div>
+
+<!-- SECTION 2: TABLE OF CONTENTS & DIRECTORY -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">DIRECTORY</span></div>
+    <h1>Table of Contents & Architecture Directory</h1>
+    <div class="card card-highlight">
+      <p>This document bridges product vision, detailed functional requirements, production database schemas, payment lifecycle states, and real-world failure handling into an actionable engineering specification.</p>
+    </div>
+    <div class="grid-2">
+      <div>
+        <p><strong>01. Product Overview, Brand Heritage & Corporate Ecosystem</strong></p>
+        <p><strong>02. Users, Roles, Personas & Permission Matrix (RBAC)</strong></p>
+        <p><strong>03. MVP Scope Matrix: Implemented vs. Partially Implemented vs. Planned</strong></p>
+        <p><strong>04. Screen-by-Screen Functional Requirements & UI States</strong></p>
+        <p><strong>05. Ground Execution, In-App Camera & Offline Video Sync Queue</strong></p>
+        <p><strong>06. Campaign System: 7 Standard Causes & Dynamic SLAs</strong></p>
+      </div>
+      <div>
+        <p><strong>07. Complete Payment & Fund Lifecycle Specification</strong></p>
+        <p><strong>08. Trust, Verification, Human-in-the-Loop & Dispute Policy</strong></p>
+        <p><strong>09. DPDP Act 2023 Compliance & Zero-Liability Safety Shield</strong></p>
+        <p><strong>10. Balanced Gamification, Campus Communities & Privacy</strong></p>
+        <p><strong>11. Production Technical Architecture, DDL & API Contracts</strong></p>
+        <p><strong>12. Operational FAQ, 90-Day Roadmap & Incubation Asks</strong></p>
+      </div>
+    </div>
+    <h2>System Architecture Pillars</h2>
+    <div class="grid-3">
+      <div class="card card-emerald">
+        <div class="card-title">1. The Micro-Giving Engine</div>
+        <p>Democratic ₹10 giving on UPI with 0% MDR under Section 10A PSSA 2007. Zero gateway leakage.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">2. Milestone Escrow Vault</div>
+        <p>Funds remain 100% frozen in batch pools until full campaign target is met, disbursed under strict SLAs.</p>
+      </div>
+      <div class="card card-amber">
+        <div class="card-title">3. Multi-Sensor Ground Proof</div>
+        <p>In-app camera only, hardware GPS/time telemetry, offline IndexedDB sync, and YouTube public archive.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Table of Contents</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 3: EXECUTIVE SUMMARY & STRATEGIC PROBLEM STATEMENT -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 01</span></div>
+    <h1>01. Product Overview, Vision & Strategic Rationale</h1>
+    <h2>1.1 Project Specification</h2>
+    <p>ACTA is an autonomous civic-tech network developed under parent entity <strong>Resence</strong> (<code>https://resence.in</code>). It directly resolves three structural dysfunctions in the Indian social giving ecosystem:</p>
+    <div class="card card-emerald">
+      <div class="card-title">1. The Ground Proof Deficit (67.5% Trust Collapse)</div>
+      <p>Donors receive generic email thank-yous or 80G tax slips, but zero visual evidence that food reached a hungry stomach or a tree was planted. Independent research indicates that 67.5% of educated urban youth refuse to donate to online charities due to corruption fears. ACTA mandates geotagged video proof within 96 hours before escrow release.</p>
+    </div>
+    <div class="card card-blue">
+      <div class="card-title">2. The "Chillar" Stigma & Minimum Ticket Barrier</div>
+      <p>Traditional charities (Ketto, Milaap) ignore donations below ₹500, treating small sums as "chillar". A college student on a ₹3,000 monthly allowance feels socially embarrassed to give ₹20. ACTA normalizes and celebrates ₹10 micro-giving via UPI, where 1,000 students pooling ₹10 generate ₹10,000 to feed 285 people.</p>
+    </div>
+    <div class="card card-amber">
+      <div class="card-title">3. The Retention & Community Void</div>
+      <p>Charity in India is treated as an episodic, guilt-driven transaction. ACTA introduces an engaging collegiate habit loop—institutional campus communities, streaks, action-based experience points (XP), and dignified impact tiers.</p>
+    </div>
+    <h2>1.2 Classical Latin Root & Historical Role</h2>
+    <p>In Classical Latin, <strong>Acta</strong> translates to <em>"Things Done"</em>, <em>"Deeds Accomplished"</em>, or <em>"Official Public Records."</em> In 131 BC, the Roman Republic hung the <strong>Acta Diurna</strong> (<em>"Daily Deeds"</em>) in the Forum as civilization's first daily public bulletin. On ACTA, every ₹10 donation is an individual <em>Acta</em>—a recorded, verified deed of human compassion, fused with the locked tagline: <strong>"Small Acts, Big Impacts."</strong></p>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 01</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 4: PERSONAS & RBAC PERMISSION MATRIX -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 02</span></div>
+    <h1>02. Users, Personas & Role-Based Permissions (RBAC)</h1>
+    <h2>2.1 Primary Stakeholder Personas</h2>
+    <table>
+      <thead>
+        <tr><th>Stakeholder</th><th>Profile & Constraints</th><th>Key Motivations & Pain Points</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Rahul (Student Donor)</strong></td>
+          <td>19, BCA 2nd Year, GL Bajaj. Monthly allowance: ₹3,500. Uses UPI daily.</td>
+          <td>Wants to do social good; cannot donate ₹500; fears scams. Motivated by college pride, verified video proof, and streak badges.</td>
+        </tr>
+        <tr>
+          <td><strong>Sunita (NGO Director)</strong></td>
+          <td>52, Runs registered animal shelter in Greater Noida. 12A/80G certified.</td>
+          <td>Needs reliable bulk funding; struggles with digital tech and erratic donations. Desires lump-sum campaign funding & video PR.</td>
+        </tr>
+        <tr>
+          <td><strong>Priya (Campus Guild Lead)</strong></td>
+          <td>20, Student Council Lead at GL Bajaj. Manages hostel club WhatsApp group.</td>
+          <td>Rallies batchmates for social causes; frustrated by disorganized cash collections. Motivated by campus leaderboard ranks.</td>
+        </tr>
+        <tr>
+          <td><strong>Admin (Compliance Lead)</strong></td>
+          <td>Resence Core Operations team. Manages audits, escrow, and NGO compliance.</td>
+          <td>Requires zero-defect escrow release, automated receipt OCR, duplicate video detection, and immutable state machines.</td>
+        </tr>
+      </tbody>
+    </table>
+    <h2>2.2 Role-Based Access Control (RBAC) Matrix</h2>
+    <table>
+      <thead>
+        <tr><th>Permission Attribute</th><th>Public Donor</th><th>NGO Director</th><th>Volunteer Field Lead</th><th>Platform Admin</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Browse Causes & Execute ₹10 UPI</strong></td><td>✅ Full Access</td><td>✅ Full Access</td><td>✅ Full Access</td><td>✅ Full Access</td></tr>
+        <tr><td><strong>View Personal Impact & Proof Archive</strong></td><td>✅ Full Access</td><td>✅ Full Access</td><td>✅ Full Access</td><td>✅ Full Access</td></tr>
+        <tr><td><strong>View NGO Bank Accounts & 90/10 Ledgers</strong></td><td>❌ No Access</td><td>✅ Full Access</td><td>❌ No Access</td><td>✅ Full Access</td></tr>
+        <tr><td><strong>Assign Campaign Volunteer Leads & Substitutes</strong></td><td>❌ No Access</td><td>✅ Full Access</td><td>❌ No Access</td><td>✅ Full Access</td></tr>
+        <tr><td><strong>In-App Camera Capture & Video Proof</strong></td><td>❌ No Access</td><td>👁️ View Only</td><td>✅ Full Access</td><td>👁️ View Only</td></tr>
+        <tr><td><strong>Submit Vendor GST Bills & Fuel Slips</strong></td><td>❌ No Access</td><td>👁️ View Only</td><td>✅ Full Access</td><td>👁️ View Only</td></tr>
+        <tr><td><strong>Authorize Escrow Fund Disbursement</strong></td><td>❌ No Access</td><td>❌ No Access</td><td>❌ No Access</td><td>✅ Full (Dual Sign-Off)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 02</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 5: MVP SCOPE MATRIX -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 03</span></div>
+    <h1>03. MVP Scope Matrix: Implemented vs. Planned</h1>
+    <p>To eliminate ambiguity and prevent premature assumptions, every system capability is strictly classified by development status:</p>
+    <table>
+      <thead>
+        <tr><th>Subsystem</th><th>Feature / Capability</th><th>Status</th><th>Verification Mechanism</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Donor Web App</strong></td><td>Responsive Mobile-First PWA (Vite + React 18)</td><td><span class="pill-item green">Implemented</span></td><td>Live on <code>resence.in</code> / <code>acta.resence.in</code></td></tr>
+        <tr><td><strong>Donor Web App</strong></td><td>Total Impact Summary Card & Lifetime Stats</td><td><span class="pill-item green">Implemented</span></td><td>Verified in Client Prototype</td></tr>
+        <tr><td><strong>Donor Web App</strong></td><td>3 Dedicated Action Pillars (Proof, XP, Guild)</td><td><span class="pill-item green">Implemented</span></td><td>Modular Clean UI Modal Architecture</td></tr>
+        <tr><td><strong>Payments</strong></td><td>Razorpay Smart UPI 1-Click Intent Integration</td><td><span class="pill-item blue">Partially Impl.</span></td><td>API Tested; Webhook Listener Active</td></tr>
+        <tr><td><strong>Payments</strong></td><td>Webhook Deduplication & Idempotency Cache</td><td><span class="pill-item blue">Partially Impl.</span></td><td>Redis 24h Event Cache Schema Built</td></tr>
+        <tr><td><strong>Escrow Vault</strong></td><td>Batch Pooling Engine (100% Target Vault Freeze)</td><td><span class="pill-item blue">Partially Impl.</span></td><td>State Machine Engine Built</td></tr>
+        <tr><td><strong>Escrow Vault</strong></td><td>Automated Virtual Wallet Refund Routine</td><td><span class="pill-item amber">Planned</span></td><td>Scheduled for Pilot Phase 2</td></tr>
+        <tr><td><strong>NGO Portal</strong></td><td>Invite-Only Magic Link Authentication</td><td><span class="pill-item blue">Partially Impl.</span></td><td>JWT Email Magic Link Route Ready</td></tr>
+        <tr><td><strong>Ground Proof</strong></td><td>In-App WebRTC Camera Lock (Gallery Locked)</td><td><span class="pill-item blue">Partially Impl.</span></td><td>WebRTC Stream + Canvas Watermark</td></tr>
+        <tr><td><strong>Ground Proof</strong></td><td>Offline Video Capture & Auto-Sync (IndexedDB)</td><td><span class="pill-item amber">Planned</span></td><td>Service Worker Sync Schema Defined</td></tr>
+        <tr><td><strong>Video Cloud</strong></td><td>YouTube Data API v3 Unlisted Archive Pipeline</td><td><span class="pill-item blue">Partially Impl.</span></td><td>Automated Ingestion Script Active</td></tr>
+        <tr><td><strong>AI Multimodal</strong></td><td>Gemini 1.5 Flash Student Impact Planner</td><td><span class="pill-item green">Implemented</span></td><td>API Prompts Tested in Sandbox</td></tr>
+        <tr><td><strong>AI Multimodal</strong></td><td>Gemini Vision OCR & Frame Hash Auditor</td><td><span class="pill-item blue">Partially Impl.</span></td><td>Assistant Tooling in Validation</td></tr>
+        <tr><td><strong>Gamification</strong></td><td>₹1 = 10 XP & Balanced Action XP Engine</td><td><span class="pill-item green">Implemented</span></td><td>Formula & Level Ladder Locked</td></tr>
+        <tr><td><strong>Community</strong></td><td>Campus Communities & Clan Scoring System</td><td><span class="pill-item blue">Partially Impl.</span></td><td>Domain Verification Architecture Built</td></tr>
+        <tr><td><strong>Community</strong></td><td>Top 25 City Leaderboard (Redis Sorted Sets)</td><td><span class="pill-item blue">Partially Impl.</span></td><td>Caching Engine Configured</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 03</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 6: SCREEN-BY-SCREEN & UI STATES -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 04</span></div>
+    <h1>04. User Dashboard UX, Wireframes & UI States</h1>
+    <h2>4.1 User Dashboard ASCII Wireframe</h2>
+    <div class="wireframe">
+┌────────────────────────────────────────────────────────────────────────┐
+│                        ACTA USER DASHBOARD (CLEAN UX)                  │
+├────────────────────────────────────────────────────────────────────────┤
+│  👤 Piyush Singh (GL Bajaj Institute of Management)                    │
+│                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │  TOTAL IMPACT SUMMARY                                            │  │
+│  │  ₹ 140 Donated  •  14 Meals Funded  •  2 Trees Planted           │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                        │
+│  [ 📹 MY DONATIONS & PROOF ]   ──► Itemized ledger, merchant GST bills,│
+│                                    and verified YouTube proof video.   │
+│                                                                        │
+│  [ 🎖️ XP & BADGES ]            ──► Level progression (Level 1 to 10),  │
+│                                    streak ring, and action badges.     │
+│                                                                        │
+│  [ 🏆 COMMUNITY & LEADERBOARD ] ──► Campus Guild clan score, inter-hostel│
+│                                    ranks, and Top 25 City Leaderboard. │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│  ACTIVE VERIFIED CAUSES (7 Cards)                                      │
+│  [ 🍲 Zero Hunger ]  [ 🌳 Green Earth ]  [ 📚 Child Education ] ...    │
+└────────────────────────────────────────────────────────────────────────┘
+    </div>
+    <h2>4.2 Comprehensive UI State Machine Specifications</h2>
+    <div class="grid-2">
+      <div class="card card-emerald">
+        <div class="card-title">A. What Happens When a Campaign Has No Evidence Yet?</div>
+        <p><strong>Status: "Proof in Progress"</strong></p>
+        <ul>
+          <li><strong>Dynamic Pill:</strong> <code>[🟡 Ground Execution in Progress]</code></li>
+          <li><strong>Execution Countdown:</strong> Live countdown timer: <em>"Execution Clock: 54 Hours 12 Mins Remaining"</em>.</li>
+          <li><strong>Assigned NGO Badge:</strong> Displays verified NGO name and NITI Aayog Darpan ID (e.g. <em>Saksham Foundation, Greater Noida</em>).</li>
+          <li><strong>Volunteer Check-in:</strong> Shows wholesale supply purchase timestamp: <em>"Supplies Purchased at Wholesale Merchant: Oct 11, 10:30 AM"</em>.</li>
+          <li><strong>Clear Donor Copy:</strong> <em>"Your funds are locked in the Escrow Vault. As soon as distribution is completed and verified, your YouTube proof video will unlock here."</em></li>
+        </ul>
+      </div>
+      <div class="card card-rose">
+        <div class="card-title">B. What Happens If the Proof Video Fails to Load?</div>
+        <p><strong>Status: Video Player Error Fallback</strong></p>
+        <ul>
+          <li><strong>Automatic Fallback Trigger:</strong> Listens to HTML5 video <code>onError</code> event.</li>
+          <li><strong>Inspected Frame Thumbnail Carousel:</strong> Immediately renders 4 high-resolution verified video frame captures with burned-in telemetry (time, GPS, watermark).</li>
+          <li><strong>Direct YouTube Button:</strong> Prominent button: <code>[Watch Directly on YouTube ↗]</code> opening the unlisted YouTube link in the native YouTube app.</li>
+          <li><strong>Itemized Bills Table:</strong> Displays verified vendor GST invoices and receipt scans.</li>
+          <li><strong>Retry Handler:</strong> Provides a <code>[Retry Video Stream]</code> button.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 04</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 7: IN-APP CAMERA & OFFLINE VIDEO SYNC -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 05</span></div>
+    <h1>05. In-App Camera Lock & Offline Video Sync Queue</h1>
+    <h2>5.1 Hardware Lockout & Canvas Telemetry</h2>
+    <p>To eliminate pre-recorded stock video fraud, gallery uploads (<code>&lt;input type="file"&gt;</code>) are permanently locked. Volunteers must film live via WebRTC (<code>MediaDevices.getUserMedia</code>). A canvas overlay injects an immutable cryptographic watermark containing: Campaign Batch ID, NGO Darpan ID, NTP-synchronized UTC timestamp, and high-precision GPS coordinates.</p>
+    <h2>5.2 Offline Video Capture & Automatic Background Sync Queue</h2>
+    <div class="card card-blue">
+      <div class="card-title">The Rural Slum & Poor Connectivity Architecture</div>
+      <p>Grassroots NGOs often distribute meals in remote slums where mobile data drops to zero. ACTA implements an offline-first capture pipeline:</p>
+    </div>
+    <div class="code-block">
+// Client Offline Video Capture & Background Sync Queue Architecture
+1. Local Storage via IndexedDB:
+   As the volunteer records via the in-app camera, video blobs are chunked into 2MB 
+   fragments and encrypted using AES-GCM, stored in IndexedDB ('acta_offline_media_store').
+   Raw hardware telemetry (GPS bounding box, gyroscope motion) is stored alongside.
+
+2. Service Worker Background Sync Registration:
+   navigator.serviceWorker.ready.then((reg) => {
+     return reg.sync.register('acta-sync-proof-bundle');
+   });
+
+3. Automatic Resume on Connectivity Restoration:
+   The Service Worker listens to 'sync' and window 'online' events. The moment the device 
+   reconnects to 4G/Wi-Fi, the sync worker activates in the background, uploading chunks 
+   sequentially to pre-signed cloud storage URLs. SHA-256 hash is validated upon completion.
+
+4. Volunteer Push Confirmation:
+   Field lead receives confirmation modal: "Proof footage successfully synced to ACTA Cloud. 
+   Submission ID #88129 verified."
+    </div>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 05</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 8: CAMPAIGN SYSTEM & DYNAMIC SLAS -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 06</span></div>
+    <h1>06. Campaign System: 7 Standard Causes & Dynamic SLAs</h1>
+    <h2>6.1 The 7 Standard Causes & Standardized Unit Costs</h2>
+    <p>ACTA maintains strictly 7 causes on the platform at any given time to eliminate cognitive fatigue and maintain audited unit economics:</p>
+    <table>
+      <thead>
+        <tr><th>Slot Type</th><th>Cause Title & Scope</th><th>Unit Cost</th><th>Rotation Logic</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Permanent 1</strong></td><td>🍲 <strong>Zero Hunger</strong> (Homeless & stray feeding)</td><td>₹35 / meal</td><td>Infinite cyclic pool. Next verified NGO takes over immediately upon completion.</td></tr>
+        <tr><td><strong>Permanent 2</strong></td><td>🌳 <strong>Green Earth</strong> (Tree plantation & campus cleanups)</td><td>₹150 / sapling</td><td>Infinite cyclic pool. Runs year-round across NCR educational campuses.</td></tr>
+        <tr><td><strong>Permanent 3</strong></td><td>📚 <strong>Child Education</strong> (School kits & notebooks)</td><td>₹250 / kit</td><td>Infinite cyclic pool. Partners with orphanages and slum learning centers.</td></tr>
+        <tr><td><strong>Permanent 4</strong></td><td>👴 <strong>Elder Care</strong> (Medicines & hygiene packs)</td><td>₹300 / pack</td><td>Infinite cyclic pool. Supports registered old-age homes and destitute seniors.</td></tr>
+        <tr><td><strong>Permanent 5</strong></td><td>🧵 <strong>Women Empowerment</strong> (Dry ration hampers)</td><td>₹500 / hamper</td><td>Infinite cyclic pool. Delivers monthly dry ration hampers to low-income widows.</td></tr>
+        <tr><td><strong>Temporary 1</strong></td><td>🚨 <strong>Disaster & Crisis Relief</strong> (Floods, winter blankets)</td><td>Dynamic</td><td>Dynamic slot. Activates during emergency seasons; retires upon completion.</td></tr>
+        <tr><td><strong>Temporary 2</strong></td><td>🐾 <strong>Emergency Stray Rescue</strong> (Trauma surgery)</td><td>₹1,500 / surgery</td><td>Dynamic slot. Dedicated to urgent animal surgeries; rotates as needs arise.</td></tr>
+      </tbody>
+    </table>
+    <h2>6.2 Ground Execution SLAs: Dynamic Deadlines by Cause Type</h2>
+    <p>A rigid 96-hour deadline does not fit all social operations. ACTA establishes cause-specific Service Level Agreements:</p>
+    <ul>
+      <li><strong>Food Distribution & Hot Meals:</strong> <strong>96 Hours (4 Days)</strong>. (Perishable meals must be distributed promptly).</li>
+      <li><strong>School Kits & Educational Stationery:</strong> <strong>7 to 10 Days</strong>. (Bulk procurement, packaging, and coordinated school distribution).</li>
+      <li><strong>Tree Plantation Drives:</strong> <strong>10 Days</strong>. (Site preparation, sapling transportation, guard installation).</li>
+      <li><strong>Emergency Veterinary Trauma Surgery:</strong> <strong>24 to 48 Hours</strong>. (Urgent medical interventions require immediate execution).</li>
+    </ul>
+    <h2>6.3 Formal SLA Extension Request Protocol</h2>
+    <p>In case of unpreventable ground obstacles (e.g. severe rain, merchant stockout), the NGO Director must file an <strong>In-App Extension Request</strong> before the deadline expires, requiring mandatory photo proof of the obstacle. If approved by Admin, deadline extends by max +72 hours, and donors receive an automated update.</p>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 06</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 9: PAYMENT & FUND LIFECYCLE SPECIFICATION -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 07</span></div>
+    <h1>07. Complete Payment & Fund Lifecycle Specification</h1>
+    <h2>7.1 End-to-End Fund Lifecycle State Flow</h2>
+    <div class="wireframe">
+[STUDENT: ₹10 UPI INTENT] ──► [RAZORPAY GATEWAY] ──(Webhook)──► [ACTA ESCROW ENGINE]
+                                                                        │
+                                                                        ▼
+                                                         [STATUS: POOLING IN VAULT]
+                                                                        │
+                                                                        ▼ (100% Target Met)
+                                                         [STATUS: MILESTONE_LOCKED]
+                                                                        │
+                                                                        ▼ (Admin Disbursement)
+                                                         [STATUS: DISBURSED_TO_NGO]
+                                                                        │
+                                                                        ▼ (NGO Execution & Telemetry)
+                                                         [STATUS: PROOF_SUBMITTED]
+                                                                        │
+                                    ┌───────────────────────────────────┴───────────────────────────────────┐
+                                    ▼ (Verified)                                                            ▼ (Default / Breach)
+                        [STATUS: COMPLETED & RELEASED]                                          [STATUS: 100% WALLET REFUND]
+    </div>
+    <h2>7.2 Razorpay Webhook Idempotency & Deduplication</h2>
+    <p>Every incoming webhook is verified via HMAC SHA-256 against Razorpay Webhook Secret. The event ID (<code>x-razorpay-event-id</code>) is checked against Redis with a 24-hour TTL (<code>SETNX</code>) to guarantee zero duplicate processing. If a student's app drops connection, Razorpay's <code>payment.captured</code> webhook reconciles the transaction within 60 seconds.</p>
+    <h2>7.3 5% Platform Maintenance Fee Accounting & Legal Custody</h2>
+    <ul>
+      <li><strong>0% MDR Regulatory Moat:</strong> Under Section 10A PSSA 2007, UPI transactions incur ₹0.00 gateway cost. 100% of donor money hits the escrow vault intact.</li>
+      <li><strong>Deduction Timing:</strong> The 5% maintenance fee is deducted <strong>only upon successful post-verification delivery</strong> from the gross campaign batch.</li>
+      <li><strong>Legal Custody:</strong> Funds flow into a dedicated Virtual Escrow / Nodal Account under RBI Nodal Guidelines. ACTA never holds funds in unmonitored current accounts.</li>
+    </ul>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 07</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 10: TRUST, VERIFICATION & DISPUTE POLICY -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 08</span></div>
+    <h1>08. Trust, Verification, Human-in-the-Loop & Dispute Policy</h1>
+    <h2>8.1 The 2-Phase Ground Proof Bundle</h2>
+    <div class="grid-2">
+      <div class="card card-blue">
+        <div class="card-title">Phase 1: Wholesale Supply Purchase Proof</div>
+        <p><strong>Captured:</strong> At wholesale merchant / retail store.</p>
+        <ul>
+          <li>In-app video showing purchased raw supplies (50 kg rice, stationery boxes, blankets).</li>
+          <li>High-res photo of merchant GST bill showing itemized quantities, GSTIN, and shop stamp.</li>
+        </ul>
+      </div>
+      <div class="card card-emerald">
+        <div class="card-title">Phase 2: Ground Distribution Proof</div>
+        <p><strong>Captured:</strong> At actual field execution site.</p>
+        <ul>
+          <li>In-app video showing service delivery (hot food served, trees planted, notebooks handed over).</li>
+          <li>Hardware GPS coordinates and NTP network timestamps burned into frame metadata.</li>
+        </ul>
+      </div>
+    </div>
+    <h2>8.2 Human-in-the-Loop Verification & The Two-Person Rule</h2>
+    <p>Google Gemini Vision performs pre-screening: OCR receipt extraction, duplicate frame hashing (pHash), and face coordinate detection. However, <strong>no AI model can unilaterally release escrow funds</strong>. A certified Resence Compliance Officer performs final verification. For disbursements exceeding <strong>₹25,000</strong>, dual authorization (Compliance Officer + Platform Lead) is mandatory via independent 2FA tokens.</p>
+    <h2>8.3 Inconclusive Evidence & Dispute Policy</h2>
+    <table>
+      <thead>
+        <tr><th>Dispute Scenario</th><th>System Action</th><th>NGO Resolution SLA</th><th>Default Consequence</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Blurred Bills / Inconclusive Footage</strong></td><td>Batch status: <code>PROOF_REVISION_REQUESTED</code>. Payout frozen.</td><td>48 Hours to upload clear GST invoice / field log.</td><td>Escrow refunded to donors; Strike 1 issued.</td></tr>
+        <tr><td><strong>NGO Formal Appeal</strong></td><td>Compliance officer conducts physical site audit within 24h.</td><td>48 Hours physical review window.</td><td>Final binding decision by Resence Legal.</td></tr>
+        <tr><td><strong>Confirmed Fraud / Stock Footage</strong></td><td>Batch status: <code>DEFAULT_TERMINATED</code>. Immediate blacklisting.</td><td>Zero appeal window.</td><td>100% donor refund; legal recovery under MoU.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 08</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 11: DPDP ACT 2023 & VOLUNTEER SAFETY SHIELD -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 09</span></div>
+    <h1>09. DPDP Act 2023 Compliance & Volunteer Safety Shield</h1>
+    <h2>9.1 DPDP Act 2023 Compliance Architecture</h2>
+    <div class="card card-amber">
+      <div class="card-title">Statutory Beneficiary Privacy Mandate</div>
+      <p>India's <strong>Digital Personal Data Protection Act (DPDP Act 2023)</strong> imposes severe statutory penalties for unauthorized publication of imagery of minors and vulnerable persons.</p>
+    </div>
+    <ul>
+      <li><strong>Minors (<18 Years Old):</strong> In all school kit distributions, orphanages, and slum educational projects, facial features of children are <strong>100% blurred by default</strong> using OpenCV / MediaPipe Gaussian Blur (<code>ksize=51, sigma=30</code>).</li>
+      <li><strong>Destitute & Hospitalized Beneficiaries:</strong> Faces of patients, destitute elderly individuals, and hospital files are automatically masked to safeguard human dignity.</li>
+      <li><strong>Authorized Staff:</strong> Adult NGO field operatives and volunteer leads remain unblurred as official institutional representatives.</li>
+    </ul>
+    <h2>9.2 Zero-Liability Volunteer Safety Shield</h2>
+    <p>ACTA operates strictly as a <strong>Technology, Escrow, and Verification Infrastructure Layer</strong>:</p>
+    <ul>
+      <li>ACTA never directly recruits, dispatches, or manages individual volunteers.</li>
+      <li>Ground execution is conducted <strong>100% by the verified partner NGO</strong> using their own registered staff and vetted volunteers.</li>
+      <li>The partner NGO assumes <strong>100% legal, physical, medical, and insurance liability</strong> for all ground activities under signed legal MoUs.</li>
+      <li>Distributions are restricted to daylight hours (8:00 AM to 5:30 PM). Volunteers must wear official NGO identification badges.</li>
+    </ul>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 09</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 12: BALANCED GAMIFICATION & CAMPUS GUILDS -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 10</span></div>
+    <h1>10. Balanced Gamification, Campus Communities & Privacy</h1>
+    <h2>10.1 Balanced Gamification: Beyond Spending</h2>
+    <p>To prevent wealth-shaming and pay-to-win dynamics, ACTA awards XP for verified civic actions, keeping personal donation amounts strictly private:</p>
+    <table>
+      <thead>
+        <tr><th>Action / Trigger</th><th>XP Reward</th><th>Cap / Limit</th><th>Strategic Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Direct Micro-Donation</strong></td><td>₹1 = 10 XP</td><td>None</td><td>Base micro-giving incentive.</td></tr>
+        <tr><td><strong>Watch & Verify Proof Video</strong></td><td>+20 XP bonus</td><td>1 per campaign</td><td>Incentivizes donors to inspect transparency footage.</td></tr>
+        <tr><td><strong>3-Week Consistency Streak</strong></td><td>+150 XP bonus</td><td>Weekly</td><td>Encourages recurring collegiate giving habits.</td></tr>
+        <tr><td><strong>Campus Guild Milestone Boost</strong></td><td>+200 XP bonus</td><td>Per campaign</td><td>Collective pride within the college clan.</td></tr>
+        <tr><td><strong>Campus Green / Social Drive</strong></td><td>+250 XP bonus</td><td>Verified offline</td><td>Rewards active student volunteering on campus.</td></tr>
+      </tbody>
+    </table>
+    <h2>10.2 The 10-Level Exponential Giving Ladder</h2>
+    <table>
+      <thead>
+        <tr><th>Level</th><th>Title</th><th>XP Required</th><th>Direct Equiv.</th><th>Profile Perks</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>L01</strong></td><td><strong>Seed Giver</strong> 🌱</td><td>0 – 4,999 XP</td><td>₹0 – ₹499</td><td>Bronze Seed Tag. Unlocks on first ₹10 donation.</td></tr>
+        <tr><td><strong>L02</strong></td><td><strong>Kind Giver</strong> 🤝</td><td>5,000 – 11,999 XP</td><td>₹500+</td><td>Silver Border Ring. Community chat unlocked.</td></tr>
+        <tr><td><strong>L03</strong></td><td><strong>Active Giver</strong> ⭐</td><td>12,000 – 24,999 XP</td><td>₹1,200+</td><td>Polished Silver Ring + Guild shoutout badge.</td></tr>
+        <tr><td><strong>L04</strong></td><td><strong>Impact Giver</strong> 🔷</td><td>25,000 – 49,999 XP</td><td>₹2,500+</td><td>Sapphire Blue Ring + Voting power on next cause.</td></tr>
+        <tr><td><strong>L05</strong></td><td><strong>Dedicated Giver</strong> 🛡️</td><td>50,000 – 99,999 XP</td><td>₹5,000+</td><td>Gold Shield Ring + Featured on Campus Board.</td></tr>
+        <tr><td><strong>L06</strong></td><td><strong>Community Pillar</strong> 🏛️</td><td>1,00,000 – 1,99,999 XP</td><td>₹10,000+</td><td>Radiant Gold Ring + Authority to create Campus Guilds.</td></tr>
+        <tr><td><strong>L07</strong></td><td><strong>Change Maker</strong> ⚔️</td><td>2,00,000 – 3,99,999 XP</td><td>₹20,000+</td><td>Emerald Ring + Invite to annual NGO field audits.</td></tr>
+        <tr><td><strong>L08</strong></td><td><strong>Master Benefactor</strong> 💎</td><td>4,00,000 – 6,99,999 XP</td><td>₹40,000+</td><td>Ruby Ring + Priority sponsor matching on donations.</td></tr>
+        <tr><td><strong>L09</strong></td><td><strong>Grand Philanthropist</strong> 🌟</td><td>7,00,000 – 9,99,999 XP</td><td>₹70,000+</td><td>Glowing Amethyst Ring + City Hall of Fame Top Tier.</td></tr>
+        <tr><td><strong>L10</strong></td><td><strong>The Crown Legend</strong> 👑</td><td>10,00,000+ XP</td><td>₹1,00,000+</td><td>Animated Diamond Crown Ring + Resence Impact Award.</td></tr>
+      </tbody>
+    </table>
+    <h2>10.3 Campus Communities & Anti-Shaming Privacy Rule</h2>
+    <p>Students join institutional communities (e.g. <em>GL Bajaj BCA 2nd Year</em>). Every ₹10 donation increments both personal score and collective Guild Score. Individual casual scores remain 100% private; public leaderboards showcase strictly the Top 25 Communities and Top 25 Hall of Fame Donors.</p>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 10</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 13: PRODUCTION SCHEMAS & API CONTRACTS -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 11</span></div>
+    <h1>11. Production Technical Architecture, DDL & API Contracts</h1>
+    <h2>11.1 PostgreSQL Relational Database Schemas</h2>
+    <div class="code-block">
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone VARCHAR(15) UNIQUE NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  college_id VARCHAR(50),
+  guild_id UUID REFERENCES campus_guilds(id),
+  wallet_balance NUMERIC(10,2) DEFAULT 0.00,
+  xp INT DEFAULT 0,
+  level INT DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE escrow_batches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cause_id UUID REFERENCES causes(id),
+  ngo_id UUID REFERENCES ngos(id),
+  target_amount NUMERIC(10,2) NOT NULL,
+  pooled_amount NUMERIC(10,2) DEFAULT 0.00,
+  direct_cause_90 NUMERIC(10,2) NOT NULL,
+  ngo_ops_10 NUMERIC(10,2) NOT NULL,
+  acta_fee_5 NUMERIC(10,2) NOT NULL,
+  execution_deadline_at TIMESTAMPTZ,
+  status VARCHAR(30) DEFAULT 'POOLING' -- MILESTONE_LOCKED, DISBURSED, COMPLETED, REFUNDED
+);
+
+CREATE TABLE proof_bundles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  escrow_batch_id UUID REFERENCES escrow_batches(id),
+  phase_1_bill_url TEXT NOT NULL,
+  phase_2_video_url TEXT NOT NULL,
+  gps_latitude NUMERIC(9,6) NOT NULL,
+  gps_longitude NUMERIC(9,6) NOT NULL,
+  ntp_timestamp TIMESTAMPTZ NOT NULL,
+  youtube_video_id VARCHAR(50),
+  status VARCHAR(30) DEFAULT 'PENDING_REVIEW'
+);
+    </div>
+    <h2>11.2 Core REST API Endpoints</h2>
+    <ul>
+      <li><code>POST /api/v1/donations/intent</code>: Creates Razorpay UPI payment session with order ID and escrow batch lock.</li>
+      <li><code>POST /api/v1/donations/webhook-razorpay</code>: Idempotent webhook listener reconciling captured UPI transactions.</li>
+      <li><code>POST /api/v1/ngo/proof/submit-bundle</code>: Ingests 2-phase video telemetry and wholesale merchant bills.</li>
+      <li><code>POST /api/v1/admin/escrow/release</code>: Dual-auth endpoint triggering milestone payout release.</li>
+    </ul>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Section 11</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+<!-- SECTION 14: FAQ, ROADMAP & INCUBATION ASKS -->
+<div class="page-section">
+  <div>
+    <div class="header-bar"><span>ACTA by Resence — Product Requirements Document</span><span class="brand">SECTION 12</span></div>
+    <h1>12. Operational FAQ, 90-Day Roadmap & Incubation Asks</h1>
+    <h2>12.1 Real-World Operational FAQ</h2>
+    <div class="card card-emerald">
+      <div class="card-title">Q1: What happens if an NGO is executing in a rural slum with zero mobile connectivity?</div>
+      <p>The in-app camera records offline. Video blobs and telemetry are stored encrypted in local IndexedDB. The Service Worker Background Sync engine automatically queues and syncs the upload the instant the device re-enters 4G/Wi-Fi coverage.</p>
+    </div>
+    <div class="card card-blue">
+      <div class="card-title">Q2: What happens if a campaign's proof video fails to load on the student's phone?</div>
+      <p>The app detects player error and immediately displays an inspected frame thumbnail carousel (with burned-in GPS and time telemetry), accompanied by a direct button to watch on YouTube, and full itemized vendor GST receipts.</p>
+    </div>
+    <div class="card card-amber">
+      <div class="card-title">Q3: What if an NGO defaults on the execution deadline?</div>
+      <p>If the deadline expires without an approved extension, the escrow vault triggers an automatic 100% refund credited to all donors' virtual wallets. The NGO receives Strike 1 on their permanent record.</p>
+    </div>
+    <h2>12.2 90-Day Execution Roadmap & GLBCRI Incubation Asks</h2>
+    <table>
+      <thead>
+        <tr><th>Phase</th><th>Execution Window</th><th>Key Deliverables</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Phase 1: Partner MoUs</strong></td><td>Days 1 – 30</td><td>Secure GLBCRI incubation letterhead; onboard first 10 local Greater Noida NGOs via offline visits.</td></tr>
+        <tr><td><strong>Phase 2: Closed Campus Pilot</strong></td><td>Days 31 – 60</td><td>Deploy 30-day pilot across GL Bajaj Knowledge Park hostels; target 1,000 active student givers & 10 completed campaigns.</td></tr>
+        <tr><td><strong>Phase 3: Inter-College League</strong></td><td>Days 61 – 90</td><td>Expand to Galgotias, Sharda, and Bennett University; activate Top 25 City Guild leaderboard.</td></tr>
+      </tbody>
+    </table>
+    <h2>Specific Asks from GLBCRI (Bharat Udyam Sangam 2026)</h2>
+    <ol>
+      <li><strong>Institutional Credibility & Letterhead:</strong> Introducing ACTA under GL Bajaj / GLBCRI official backing to 18–20 verified NGOs.</li>
+      <li><strong>Campus Pilot Authorization:</strong> Permission to run an official 30-day student micro-giving pilot across GL Bajaj Knowledge Park hostels.</li>
+      <li><strong>Pre-Incubation Mentorship:</strong> Legal structuring for NGO MoUs, Section 8/Pvt Ltd formalization, and seed grant guidance.</li>
+    </ol>
+  </div>
+  <div class="footer-bar"><span>ACTA by Resence • Appendix & Sign-Off</span><span>ACTA-SPEC-V2.5</span></div>
+</div>
+
+</body>
+</html>

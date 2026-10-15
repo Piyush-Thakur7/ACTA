@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ACTA Question Answer — Master Defense Guide (v2.6 Revised)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm 12mm 14mm;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #0F172A; background-color: #FFFFFF; line-height: 1.42; font-size: 8.6pt;
+    -webkit-font-smoothing: antialiased;
+  }
+  .cover-page {
+    min-height: 265mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+    break-after: page;
+    padding: 10px 0;
+  }
+  .header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #E2E8F0;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    font-size: 7.2pt;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748B;
+    font-weight: 600;
+  }
+  .header-bar .brand { color: #0F172A; font-weight: 800; }
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #E2E8F0;
+    padding-top: 4px;
+    margin-top: 8px;
+    font-size: 7.2pt;
+    color: #94A3B8;
+  }
+  .brand-badge {
+    background: #0F172A;
+    color: #FFFFFF;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 9pt;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .doc-tag { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 700; }
+  .cover-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E2E8F0; padding-bottom: 14px; margin-bottom: 20px; }
+  .hero-h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 34pt; font-weight: 800; letter-spacing: -1.5px; line-height: 1.05; color: #0F172A; margin-bottom: 8px; }
+  .hero-h1 span { color: #059669; }
+  .hero-sub { font-family: 'Space Grotesk', sans-serif; font-size: 15pt; color: #334155; font-weight: 600; margin-bottom: 14px; letter-spacing: -0.5px; }
+  .hero-paragraph { font-size: 9.8pt; color: #475569; line-height: 1.5; margin-bottom: 20px; }
+  .pill-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .pill-item { background: #F1F5F9; color: #334155; font-size: 7.2pt; font-weight: 600; padding: 3px 8px; border-radius: 999px; border: 1px solid #E2E8F0; }
+  .pill-item.green { background: #ECFDF5; color: #065F46; border-color: #A7F3D0; }
+  .pill-item.blue { background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE; }
+  .pill-item.amber { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
+  .meta-table-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .meta-col h6 { font-size: 6.8pt; text-transform: uppercase; color: #64748B; letter-spacing: 1px; margin-bottom: 2px; }
+  .meta-col p { font-size: 8.5pt; font-weight: 600; color: #0F172A; }
+  .sec-header {
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13pt; font-weight: 800; color: #0F172A; letter-spacing: -0.4px; padding-bottom: 3px; border-bottom: 1.5px solid #E2E8F0; }
+  h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10.5pt; font-weight: 700; color: #0F172A; margin-top: 10px; margin-bottom: 4px; page-break-after: avoid; break-after: avoid; }
+  p { margin-bottom: 4px; color: #334155; line-height: 1.4; }
+  ul, ol { margin-left: 14px; margin-bottom: 5px; color: #334155; }
+  li { margin-bottom: 2px; }
+  strong { color: #0F172A; font-weight: 600; }
+  .qa-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 5px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .qa-num { font-size: 7pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+  .qa-q { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 8.8pt; color: #0F172A; margin-bottom: 3px; }
+  .qa-a { font-size: 8.2pt; color: #334155; line-height: 1.38; }
+  .qa-tag { display: inline-block; font-size: 6.5pt; font-weight: 600; padding: 2px 5px; border-radius: 4px; margin-top: 3px; }
+  .qa-tag.status-live { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+  .qa-tag.status-prop { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+  .qa-tag.status-strat { background: #F8FAFC; color: #475569; border: 1px solid #E2E8F0; }
+  .qa-tag.status-pilot { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+</style>
+</head>
+<body>
+
+<div class="cover-page">
+  <div>
+    <div class="cover-top">
+      <div class="brand-badge">RESENCE ECOSYSTEM</div>
+      <div class="doc-tag">GLBCRI PITCH PREPARATION • MASTER DEFENSE MANUAL</div>
+    </div>
+    <div class="hero-h1">ACTA <span>Question Answer</span></div>
+    <div class="hero-sub">Complete Conclave Examination Defense Guide & Risk Register</div>
+    <div class="hero-paragraph">
+      Comprehensive, grounded, and non-hallucinated defense manual for the Bharat Udyam Sangam 2026 Conclave at GLBCRI (GL Bajaj Center for Research and Incubation). Contains factual answers for all 160 examination questions, 14 operational scenarios, risk registers, and pitch readiness checklists. Dense, complete full-page coverage with zero empty voids.
+    </div>
+    <div class="pill-group">
+      <div class="pill-item green">160 Questions Answered</div>
+      <div class="pill-item blue">SaaS & 5% Service Fee Clarified</div>
+      <div class="pill-item amber">₹100 Split Math (₹5 / ₹95)</div>
+      <div class="pill-item green">Continuity Reserve Policy</div>
+      <div class="pill-item blue">1 Campus + 1-2 Local NGOs Pilot</div>
+      <div class="pill-item">Collegiate Impact Guilds & Campus Clans</div>
+    </div>
+    <div class="meta-table-box">
+      <div class="meta-col"><h6>Founder & Pitcher</h6><p>Piyush Singh (CEO, Resence)</p></div>
+      <div class="meta-col"><h6>Academic Standing</h6><p>BCA 2nd Year, GL Bajaj (GLBIM)</p></div>
+      <div class="meta-col"><h6>Target Conclave</h6><p>Bharat Udyam Sangam 2026 (GLBCRI)</p></div>
+      <div class="meta-col"><h6>Document Classification</h6><p>Official Conclave Defense Guide</p></div>
+      <div class="meta-col"><h6>Tagline Locked</h6><p>Small Acts. Big Impact.</p></div>
+      <div class="meta-col"><h6>Live Prototype</h6><p>resence.in / acta.resence.in</p></div>
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span>CONFIDENTIAL & PROPRIETARY — RESENCE TECH LABS</span>
+    <span>GLBCRI CONCLAVE DEFENSE MANUAL • OCTOBER 2026</span>
+  </div>
+</div>
+<p>ACTA by Resence — GLBCRI Pitch Preparation</p>
+<h2>Question Bank, Suggested Answer Frameworks, Risk Register and Pitch Checklist</h2>
+<p>Tagline: Small Acts. Big Impact.</p>
+<p>Use this as a preparation document. Adapt every answer to the current product. Clearly distinguish implemented features from planned features and hypotheses from validated facts.</p>
+
+        <div class="sec-header">
+          <h1>1. Most Important Questions — Suggested Answers</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 1</div>
+          <div class="qa-q">What is ACTA?</div>
+          <div class="qa-a">ACTA by Resence is a social-impact technology platform designed to connect people, communities, institutions, NGOs and resources to help solve societal problems collaboratively.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 2</div>
+          <div class="qa-q">What problem are you solving?</div>
+          <div class="qa-a">Social-impact activities can suffer from disconnected volunteers, institutions, NGOs and resources, along with limited coordination and visibility into progress. ACTA aims to bring these workflows together.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 3</div>
+          <div class="qa-q">How is ACTA different?</div>
+          <div class="qa-a">ACTA’s proposed differentiation is its connected workflow: challenge discovery, Institutional Guilds, volunteering, resource coordination, evidence-based progress and impact tracking. This needs validation against competitors and through a pilot.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 4</div>
+          <div class="qa-q">What have you built?</div>
+          <div class="qa-a">I have developed and deployed a full-stack prototype. I will demonstrate features that currently work and distinguish them from planned features.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 5</div>
+          <div class="qa-q">How will ACTA make money?</div>
+          <div class="qa-a">The proposed model is to provide software, campaign-management and reporting services to NGOs or institutions and charge an agreed service fee or subscription. ACTA operates as a Technology-as-a-Service (SaaS) provider. ACTA earns a proposed 5% platform service fee for software infrastructure, verification telemetry, and donor reporting. Earmarked 20% of fee revenue supports an internal Continuity Reserve for platform stability and emergency replacement execution.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 6</div>
+          <div class="qa-q">Where will donations go?</div>
+          <div class="qa-a">Under the proposed model, donations will go directly to an eligible NGO’s payment account. ACTA’s service fee may be handled through a configured provider settlement arrangement, subject to confirmation and compliance review. Canonical proposed allocation for ₹100: ACTA service fee = ₹5.00 (5%); NGO payout = ₹95.00 (95%). Of the NGO's ₹95, up to 10% (₹9.50) may be used for permitted audited logistics if allowed by terms/restrictions, and remaining 90% (₹85.50) is dedicated to direct cause supplies backed by GST invoices. Labeled as proposed accounting illustration.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 7</div>
+          <div class="qa-q">Who are your first users?</div>
+          <div class="qa-a">The initial target could be one college or institution, its student community and one suitable NGO partner. The pilot will test user needs and adoption.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 8</div>
+          <div class="qa-q">What do you need from GLBCRI?</div>
+          <div class="qa-a">Incubation support, mentorship, introductions to institutional and NGO partners, market validation and guidance on a compliant payment model.</div>
+          <div><span class="qa-tag status-pilot">GROUNDED PILOT EXECUTION</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 9</div>
+          <div class="qa-q">What is your biggest risk?</div>
+          <div class="qa-a">Proving real-world adoption and willingness to pay, securing NGO partnerships, making evidence verification reliable and implementing a compliant payment flow.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 10</div>
+          <div class="qa-q">What will you do in 90 days?</div>
+          <div class="qa-a">Define a focused pilot, work to onboard an institution and NGO partner, test the core workflow, and measure participation, completed activities, evidence acceptance and partner feedback.</div>
+          <div><span class="qa-tag status-pilot">GROUNDED PILOT EXECUTION</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>2. Founder and Idea Origin</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 11</div>
+          <div class="qa-q">How did ACTA begin?</div>
+          <div class="qa-a">The idea began with my efforts to recruit volunteers for social-impact activities. Over time, I saw an opportunity to connect volunteers, communities, institutions, NGOs and resources through a coordinated system.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 12</div>
+          <div class="qa-q">How did you move from volunteer recruitment to a platform?</div>
+          <div class="qa-a">I started with volunteer recruitment, then explored how the process could be organized and scaled. The broader features evolved over time rather than being part of the original idea.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 13</div>
+          <div class="qa-q">Have you experienced this problem?</div>
+          <div class="qa-a">My initial experience recruiting volunteers motivated me to explore how social-impact participation could be coordinated more effectively.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 14</div>
+          <div class="qa-q">What do ACTA and its tagline represent?</div>
+          <div class="qa-a">ACTA by Resence uses the tagline “Small Acts. Big Impact.” It reflects the idea that coordinated individual contributions can support broader social outcomes.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 15</div>
+          <div class="qa-q">How much time have you invested?</div>
+          <div class="qa-a">I have spent roughly a year evolving the concept and working on the prototype and validation activities. I can explain the milestones and work completed.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 16</div>
+          <div class="qa-q">Who is on your team?</div>
+          <div class="qa-a">I will explain each member’s actual responsibilities, skills and contribution, without assigning roles that we have not agreed on.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 17</div>
+          <div class="qa-q">Why should people join your team?</div>
+          <div class="qa-a">The opportunity is to work on a meaningful social-impact problem, build a real product and test it with actual communities and NGO partners.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 18</div>
+          <div class="qa-q">What if college exams conflict with the startup?</div>
+          <div class="qa-a">I will set a realistic schedule, define responsibilities and establish measurable weekly goals.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 19</div>
+          <div class="qa-q">What if a team member leaves?</div>
+          <div class="qa-a">We will document the product, maintain version control and define ownership and responsibilities so work can continue.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 20</div>
+          <div class="qa-q">What are your strengths and gaps?</div>
+          <div class="qa-a">I have taken the idea from volunteer recruitment to a deployed prototype. I still need to strengthen validation, operations, compliance and scaling, and I am seeking mentorship for those gaps.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>3. Problem and Market Validation</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 21</div>
+          <div class="qa-q">Who are your target users?</div>
+          <div class="qa-a">Potential users include volunteers, students, institutions and NGO teams. Potential paying customers may include NGOs or institutions, depending on pilot results.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 22</div>
+          <div class="qa-q">What evidence supports the problem?</div>
+          <div class="qa-a">My experience and outreach motivated the concept. I will present actual interview findings, survey results or partner feedback where available, without overstating the evidence.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 23</div>
+          <div class="qa-q">Have you interviewed users?</div>
+          <div class="qa-a">I have reached out to NGOs for feedback. I will distinguish the number contacted from the number who replied and the insights actually received.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 24</div>
+          <div class="qa-q">What did NGO outreach teach you?</div>
+          <div class="qa-a">I will share actual responses and recurring pain points documented during outreach, without claiming a consensus unless the feedback supports it.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 25</div>
+          <div class="qa-q">Has an NGO formally agreed to use ACTA?</div>
+          <div class="qa-a">I will state the current status accurately. Outreach or a positive conversation is not the same as a signed pilot agreement.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 26</div>
+          <div class="qa-q">Has an institution committed to a pilot?</div>
+          <div class="qa-a">I will state whether a formal commitment exists. If not, securing a pilot partner is a next milestone.</div>
+          <div><span class="qa-tag status-pilot">GROUNDED PILOT EXECUTION</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 27</div>
+          <div class="qa-q">How do people solve this today?</div>
+          <div class="qa-a">They may use NGO systems, messaging groups, forms, spreadsheets or separate platforms. The pilot will test whether a connected workflow adds enough value.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 28</div>
+          <div class="qa-q">Why would users choose ACTA?</div>
+          <div class="qa-a">ACTA aims to make it easier to discover campaigns, coordinate participation and follow progress in one workflow. Pilot results must establish its value.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 29</div>
+          <div class="qa-q">How large is your market?</div>
+          <div class="qa-a">I need to estimate the addressable market using credible counts of institutions and NGOs, realistic adoption assumptions and the segment ACTA can initially serve.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 30</div>
+          <div class="qa-q">How did you calculate market size?</div>
+          <div class="qa-a">I will explain the sources and assumptions behind any estimate. Unvalidated figures will be labelled estimates, not facts.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 31</div>
+          <div class="qa-q">Who uses ACTA and who pays?</div>
+          <div class="qa-a">Users may include volunteers, students and NGO teams. Potential payers include NGOs or institutions purchasing software and services; this still needs validation.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 32</div>
+          <div class="qa-q">Will NGOs pay for software?</div>
+          <div class="qa-a">That is an assumption to test through interviews, pilot offers and discussions about the value of reporting and campaign management.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 33</div>
+          <div class="qa-q">Why pay when free tools exist?</div>
+          <div class="qa-a">ACTA must demonstrate that its coordinated workflow, reporting and evidence management save effort or improve outcomes enough to justify the price.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 34</div>
+          <div class="qa-q">How will you prove impact?</div>
+          <div class="qa-a">I will track measurable outputs and outcomes, such as completed activities, accepted evidence, participation, milestones and partner feedback.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 35</div>
+          <div class="qa-q">Have you changed the product based on feedback?</div>
+          <div class="qa-a">I will describe specific feedback and the product changes it caused, without claiming a change was user-driven unless I can explain the evidence.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>4. Product, Technology and Demo</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 36</div>
+          <div class="qa-q">Can you demonstrate ACTA?</div>
+          <div class="qa-a">I will demonstrate the current prototype, focus on a short core workflow and keep a recording or screenshots ready in case of connectivity problems.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 37</div>
+          <div class="qa-q">Which features currently work?</div>
+          <div class="qa-a">I will list only features tested and working in the current build.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 38</div>
+          <div class="qa-q">Which features are planned?</div>
+          <div class="qa-a">I will label advanced verification, AI assistance, CSR matching or government-facing tools as planned unless they are implemented.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 39</div>
+          <div class="qa-q">What is your technology stack?</div>
+          <div class="qa-a">The prototype has used React/Next.js, Node/Express, MongoDB, JWT and Vercel/Render. I will confirm the exact stack in the current codebase before presenting.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+<p>40. Explain your architecture.</p>
+<p>I will explain how the frontend communicates with the backend, how the backend accesses the database, how authentication works and which external services are integrated.</p>
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 41</div>
+          <div class="qa-q">How do authentication and permissions work?</div>
+          <div class="qa-a">I will explain the current implementation of login, roles and access control and avoid claiming complete role separation unless verified.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 42</div>
+          <div class="qa-q">How will NGOs be verified?</div>
+          <div class="qa-a">The proposed process can include checking registration and organizational documents, validating authorized contacts and reviewing campaign details.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 43</div>
+          <div class="qa-q">How is a campaign created?</div>
+          <div class="qa-a">I will demonstrate the actual campaign-creation workflow if implemented. Otherwise, I will describe it as planned.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 44</div>
+          <div class="qa-q">How is proof submitted?</div>
+          <div class="qa-a">The proposed workflow allows campaign teams to submit supporting evidence, such as photos, videos, timestamps or reports, depending on the campaign.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 45</div>
+          <div class="qa-q">Who approves evidence?</div>
+          <div class="qa-a">An authorized reviewer should evaluate submissions against defined criteria. The roles and workflow need to be implemented and documented.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 46</div>
+          <div class="qa-q">How will you detect fake evidence?</div>
+          <div class="qa-a">Potential controls include reviewer checks, timestamps, duplicate detection and contextual verification. They reduce risk but cannot guarantee all fraud is detected.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 47</div>
+          <div class="qa-q">Can an NGO appeal a rejection?</div>
+          <div class="qa-a">A fair system should explain rejection reasons and allow correction or review under a documented process. I will identify whether this is implemented or planned.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 48</div>
+          <div class="qa-q">What if the server goes down?</div>
+          <div class="qa-a">I will explain current hosting and backup arrangements and establish monitoring, recovery and backup procedures appropriate to the pilot.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 49</div>
+          <div class="qa-q">How will you protect data?</div>
+          <div class="qa-a">I will minimize collected data, restrict access, protect credentials, use secure transport and storage, and establish backup, retention and incident-response practices.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 50</div>
+          <div class="qa-q">Does it work on mobile?</div>
+          <div class="qa-a">I will test the current responsive experience on common mobile devices and present the actual result.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 51</div>
+          <div class="qa-q">Can it scale to 100,000 users?</div>
+          <div class="qa-a">The prototype is not proof of that scale. I would assess load, database performance, caching, monitoring and infrastructure before claiming readiness.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 52</div>
+          <div class="qa-q">What does hosting cost?</div>
+          <div class="qa-a">I will provide actual current hosting and service costs where available and label future scaling costs as estimates.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 53</div>
+          <div class="qa-q">Has there been an independent security review?</div>
+          <div class="qa-a">I will answer honestly. If no review has taken place, I will list it as a pre-launch task.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 54</div>
+          <div class="qa-q">What if the demo fails?</div>
+          <div class="qa-a">I will have a short recording, screenshots, a stable demo account and a simple explanation of the core workflow ready.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>5. Institutional Guilds and Gamification</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 55</div>
+          <div class="qa-q">What is an Institutional Guild?</div>
+          <div class="qa-a">A proposed community structure through which a college or institution can organize participants and coordinate social-impact activities.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 56</div>
+          <div class="qa-q">How is a Guild different from a college club?</div>
+          <div class="qa-a">A Guild is intended to connect participation to campaigns, verified activities and measurable progress. Its added value must be demonstrated in a pilot.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 57</div>
+          <div class="qa-q">Why would colleges create Guilds?</div>
+          <div class="qa-a">Guilds could help institutions organize student participation, coordinate NGO campaigns and track verified activities.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 58</div>
+          <div class="qa-q">Why would students stay active?</div>
+          <div class="qa-a">The platform aims to combine meaningful activities, visible progress, recognition and community participation. Retention must be measured.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 59</div>
+          <div class="qa-q">How does gamification support impact?</div>
+          <div class="qa-a">Points and badges should recognize verified participation and meaningful contributions, not replace the real-world objective.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 60</div>
+          <div class="qa-q">What stops people gaming the points system?</div>
+          <div class="qa-a">Possible controls include evidence requirements, review, duplicate checks, activity limits and audit logs. No system can promise zero abuse.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 61</div>
+          <div class="qa-q">How will Guild competitions be fair?</div>
+          <div class="qa-a">Use transparent scoring rules, comparable activity categories and review processes, and avoid rewarding quantity without considering quality.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 62</div>
+          <div class="qa-q">Will participants receive certificates?</div>
+          <div class="qa-a">Certificates could be offered if the platform and participating institution agree on criteria and verification. I will not promise institutional recognition without approval.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 63</div>
+          <div class="qa-q">What if someone does not submit proof?</div>
+          <div class="qa-a">The activity should remain unverified until the required evidence is submitted and reviewed, according to campaign rules.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 64</div>
+          <div class="qa-q">Can Guilds participate without donations?</div>
+          <div class="qa-a">Yes. The intended platform includes non-financial participation such as volunteering, skills and verified activities.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 65</div>
+          <div class="qa-q">How will you include people who cannot donate?</div>
+          <div class="qa-a">ACTA is intended to recognize time, skills and participation as well as financial contributions.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>6. NGO and Campaign Operations</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 66</div>
+          <div class="qa-q">Who will onboard NGOs?</div>
+          <div class="qa-a">Initially, the founding team would approach suitable organizations and guide them through onboarding and verification.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 67</div>
+          <div class="qa-q">How will you verify an NGO?</div>
+          <div class="qa-a">The proposed process includes checking relevant registration documents, authorized contacts, organizational details and campaign information.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 68</div>
+          <div class="qa-q">What if an NGO misuses funds?</div>
+          <div class="qa-a">The NGO is responsible for its fund use under the applicable arrangements. ACTA should maintain transparent records, escalation procedures and partner agreements, without claiming the platform alone can prevent misuse.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 69</div>
+          <div class="qa-q">What if an NGO does not finish a campaign?</div>
+          <div class="qa-a">The campaign should be marked delayed or incomplete, with an explanation and updated evidence. Donor remedies depend on campaign terms and applicable rules.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 70</div>
+          <div class="qa-q">Who sets milestones?</div>
+          <div class="qa-a">The NGO and campaign team should define realistic milestones, with ACTA supporting documentation and tracking.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 71</div>
+          <div class="qa-q">How will donors see utilization?</div>
+          <div class="qa-a">The proposed system can show campaign status, supporting evidence and available utilization records, subject to privacy and verification limits.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 72</div>
+          <div class="qa-q">What if expected impact is not achieved?</div>
+          <div class="qa-a">The result should be reported transparently, including what was completed, what was not achieved and why, where known.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 73</div>
+          <div class="qa-q">Who resolves disputes?</div>
+          <div class="qa-a">The NGO agreement and platform terms should define responsibilities, complaint handling and escalation routes.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 74</div>
+          <div class="qa-q">What if an NGO does not pay ACTA?</div>
+          <div class="qa-a">The service agreement should define invoices, payment terms, renewal and suspension. ACTA should not take unauthorized deductions from donations.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 75</div>
+          <div class="qa-q">Can an NGO manage its own campaign?</div>
+          <div class="qa-a">That is part of the intended product direction. I will explain the current self-service capabilities accurately.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 76</div>
+          <div class="qa-q">What if NGO staff are not tech-savvy?</div>
+          <div class="qa-a">Start with simple onboarding, templates, training and support, and test whether staff can complete the workflow.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 77</div>
+          <div class="qa-q">What about weak internet in rural areas?</div>
+          <div class="qa-a">The pilot should test mobile usability and low-bandwidth performance. Offline support should only be promised if implemented.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 78</div>
+          <div class="qa-q">Will there be written NGO agreements?</div>
+          <div class="qa-a">Written agreements should define services, fees, campaign responsibilities, evidence, data handling and dispute processes before formal operation.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 79</div>
+          <div class="qa-q">What happens to records if an NGO leaves?</div>
+          <div class="qa-a">The platform should define data access, export, retention and deletion rules in the agreement and privacy policy.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+<p>7. Donations, 5% Service Fee and Legal Questions</p>
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 80</div>
+          <div class="qa-q">Does ACTA collect donations?</div>
+          <div class="qa-a">Under the proposed model, donations are intended to go directly to the eligible NGO’s payment account. ACTA provides technology services. The exact payment flow needs provider and legal review.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 81</div>
+          <div class="qa-q">What is the 5% fee for?</div>
+          <div class="qa-a">The proposed fee compensates ACTA for agreed platform, campaign-management and reporting services. The service scope and fee must be documented.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 82</div>
+          <div class="qa-q">Who pays the 5% fee?</div>
+          <div class="qa-a">The proposed flow allocates 5% of the donation amount as ACTA’s service fee and 95% to the NGO. The final payer, accounting and settlement treatment must be confirmed.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 83</div>
+          <div class="qa-q">Will donors see the fee before paying?</div>
+          <div class="qa-a">The fee and allocation should be clearly disclosed before the donor confirms the transaction.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 84</div>
+          <div class="qa-q">Why use escrow?</div>
+          <div class="qa-a">The proposed idea is to use a provider-supported settlement mechanism if appropriate. Whether escrow is necessary or permitted depends on the actual flow and provider requirements.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 85</div>
+          <div class="qa-q">Does the provider support automatic 5%/95% settlement?</div>
+          <div class="qa-a">I need written confirmation from the provider. I will not claim the split is approved until the exact arrangement is confirmed.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 86</div>
+          <div class="qa-q">Is ACTA a payment aggregator, gateway or SaaS provider?</div>
+          <div class="qa-a">ACTA is intended primarily as a social-impact technology service. Its regulatory classification depends on actual payment activities and must be confirmed by a qualified advisor.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 87</div>
+          <div class="qa-q">What if split settlement is not supported?</div>
+          <div class="qa-a">I will redesign the billing and settlement model with the provider and legal advisor rather than implement an unapproved workaround.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 88</div>
+          <div class="qa-q">Who pays payment processing fees?</div>
+          <div class="qa-a">This must be stated in the provider agreement and disclosed where relevant, and included in campaign financial calculations.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 89</div>
+          <div class="qa-q">What happens to ACTA’s fee after a refund?</div>
+          <div class="qa-a">The refund and fee-reversal policy must be agreed with the provider and documented in NGO and donor terms.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 90</div>
+          <div class="qa-q">Who bears chargebacks or fraudulent payment losses?</div>
+          <div class="qa-a">The payment-provider contract and applicable rules determine responsibility. ACTA must clarify this before live transactions.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 91</div>
+          <div class="qa-q">Will ACTA ever control donor funds?</div>
+          <div class="qa-a">The intended design is to avoid holding or pooling donations and have donations go directly to the NGO. The actual arrangement must ensure the flow matches that intention.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 92</div>
+          <div class="qa-q">Whose account receives the donation?</div>
+          <div class="qa-a">Under the proposed model, the eligible NGO’s appropriately configured payment account receives the donation.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 93</div>
+          <div class="qa-q">How will the NGO reconcile settlement?</div>
+          <div class="qa-a">The system should reconcile payment IDs, gross donations, fees, provider charges, refunds and net settlement against provider reports.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 94</div>
+          <div class="qa-q">Is the NGO’s 10% general-use allocation automatically legal?</div>
+          <div class="qa-a">No universal assumption should be made. It depends on donor restrictions, campaign terms, the NGO’s legal and tax obligations and applicable requirements.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 95</div>
+          <div class="qa-q">Will donors know how the 10% is used?</div>
+          <div class="qa-a">Campaign terms should clearly disclose the proposed allocation and what counts as permitted administrative or general use.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 96</div>
+          <div class="qa-q">Will every campaign use the same 10% allocation?</div>
+          <div class="qa-a">This policy must be defined transparently and checked against each campaign’s restrictions and NGO obligations.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 97</div>
+          <div class="qa-q">What if a donor restricts the donation to a specific purpose?</div>
+          <div class="qa-a">The restriction must be respected. Funds should not be allocated contrary to donor conditions or applicable rules.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 98</div>
+          <div class="qa-q">Will ACTA need GST registration or charge GST?</div>
+          <div class="qa-a">This depends on business structure, turnover and applicable tax rules. A tax professional should confirm registration and invoicing requirements.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 99</div>
+          <div class="qa-q">Who issues the donation receipt?</div>
+          <div class="qa-a">The recipient NGO should handle the donation receipt under the agreed process. ACTA’s service invoice is separate.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 100</div>
+          <div class="qa-q">Will the donation qualify for a tax deduction?</div>
+          <div class="qa-a">That is not automatic. Eligibility depends on the recipient’s status, the donation and applicable requirements. ACTA should not promise tax benefits without confirmation.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 101</div>
+          <div class="qa-q">What registrations or approvals does the NGO need?</div>
+          <div class="qa-a">This depends on the organization and campaign. ACTA should verify relevant documents and obtain professional guidance.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 102</div>
+          <div class="qa-q">What if foreign donations are involved?</div>
+          <div class="qa-a">Foreign contributions can trigger additional requirements. The pilot should not assume domestic and foreign donations follow the same process.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 103</div>
+          <div class="qa-q">Does ACTA need authorization to handle funds?</div>
+          <div class="qa-a">The intended model is to provide technology and avoid holding donations, but obligations depend on the actual payment flow and require qualified review.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 104</div>
+          <div class="qa-q">How will ACTA account for service-fee revenue?</div>
+          <div class="qa-a">ACTA should maintain separate service invoices, payment-provider settlement records, bookkeeping and tax compliance as advised by an accountant.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>8. Competitors and Differentiation</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 105</div>
+          <div class="qa-q">Who are ACTA’s competitors?</div>
+          <div class="qa-a">Adjacent platforms include volunteer-engagement, NGO-management, donation and civic-participation services. I will compare their actual features rather than claim there are no competitors.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 106</div>
+          <div class="qa-q">How is ACTA different from MY Bharat or other platforms?</div>
+          <div class="qa-a">ACTA’s intended focus is its connected workflow combining challenge discovery, Institutional Guilds, participation and transparent campaign tracking. A current feature-by-feature comparison is needed.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 107</div>
+          <div class="qa-q">Why not use WhatsApp, forms and spreadsheets?</div>
+          <div class="qa-a">ACTA must prove that an integrated workflow reduces coordination effort, improves records or increases verified participation enough to justify switching.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 108</div>
+          <div class="qa-q">Does every ACTA feature already exist elsewhere?</div>
+          <div class="qa-a">Individual features may exist elsewhere. The hypothesis is that connecting them could be useful; this needs competitive analysis and pilot validation.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 109</div>
+          <div class="qa-q">What if competitors copy ACTA?</div>
+          <div class="qa-a">The response is better execution, trusted partner relationships, reliable operations, strong user experience and evidence of outcomes.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 110</div>
+          <div class="qa-q">What is ACTA’s defensible advantage?</div>
+          <div class="qa-a">At this stage, the potential advantage is the connected workflow and future partner network. A durable advantage must be earned through execution and trust.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 111</div>
+          <div class="qa-q">Have you built a competitor comparison?</div>
+          <div class="qa-a">I should prepare a current comparison of target users, campaigns, Guilds, evidence verification, reporting, payment flow and pricing.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 112</div>
+          <div class="qa-q">What is ACTA’s USP in one sentence?</div>
+          <div class="qa-a">ACTA aims to connect societal challenges, institutional participation, NGO campaigns and transparent impact tracking in one coordinated workflow.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 113</div>
+          <div class="qa-q">Is ACTA India’s first or only platform of its kind?</div>
+          <div class="qa-a">I will not claim first or only without strong evidence. I will explain the workflow I am building and how it compares with alternatives.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 114</div>
+          <div class="qa-q">Are you targeting everyone?</div>
+          <div class="qa-a">No. The initial focus should be narrow—for example, one institution and one NGO campaign—before expanding.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>9. Business Model and Financial Sustainability</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 115</div>
+          <div class="qa-q">Who is the first paying customer?</div>
+          <div class="qa-a">The first likely paying customer could be an NGO or institution that values campaign-management and reporting services. This needs validation.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 116</div>
+          <div class="qa-q">What is the primary revenue source?</div>
+          <div class="qa-a">The initial options are a fixed service fee or subscription. The 5% donation-linked fee is proposed and requires provider and compliance confirmation.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 117</div>
+          <div class="qa-q">What if donation volume is low?</div>
+          <div class="qa-a">A subscription or fixed service fee could reduce dependence on donation volume, but willingness to pay must be validated.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 118</div>
+          <div class="qa-q">Will every NGO pay the same fee?</div>
+          <div class="qa-a">Pricing could depend on service scope and partner needs, but tiers must be transparent and tested.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 119</div>
+          <div class="qa-q">How much revenue would ₹1 lakh in donations generate at 5%?</div>
+          <div class="qa-a">₹5,000 gross fee revenue if the full ₹1 lakh is eligible for a 5% fee. It is not profit; costs, refunds and applicable taxes are separate.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 120</div>
+          <div class="qa-q">How much would ₹10 lakh monthly donation volume generate at 5%?</div>
+          <div class="qa-a">₹50,000 gross fee revenue under the same assumption. This is a scenario, not a forecast.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 121</div>
+          <div class="qa-q">What are the operating costs?</div>
+          <div class="qa-a">I need to calculate hosting, payment processing, support, verification, development, administration and applicable compliance costs.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 122</div>
+          <div class="qa-q">What is customer acquisition cost?</div>
+          <div class="qa-a">I need pilot data on outreach time, travel, onboarding effort and marketing costs before claiming a reliable cost.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 123</div>
+          <div class="qa-q">What does onboarding one NGO cost?</div>
+          <div class="qa-a">I will measure staff time, training, verification and support effort during the pilot.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 124</div>
+          <div class="qa-q">Can ACTA become profitable?</div>
+          <div class="qa-a">Potentially, but profitability depends on pricing, paying customers, retention, service costs and scale. Those assumptions need validation.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 125</div>
+          <div class="qa-q">How will free users become paying customers?</div>
+          <div class="qa-a">I will demonstrate value through a pilot and offer paid services to partners that need ongoing campaign management, coordination or reporting.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 126</div>
+          <div class="qa-q">What if NGOs will not pay?</div>
+          <div class="qa-a">I will test institutional subscriptions, fixed service contracts or sponsor-funded software services rather than assume the original model must work.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 127</div>
+          <div class="qa-q">Why would CSR partners pay?</div>
+          <div class="qa-a">Potentially for campaign coordination, reporting or evidence workflows, but this requires customer discovery and must not be presented as existing demand or partnership.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 128</div>
+          <div class="qa-q">Do you need funding?</div>
+          <div class="qa-a">My immediate priority is to validate the model and run a focused pilot. Any funding request should be tied to a specific budget and milestones.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 129</div>
+          <div class="qa-q">Can you continue without incubation?</div>
+          <div class="qa-a">I can continue refining the prototype and validating the problem, while incubation could help with mentoring, partner introductions and structured pilot access.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>10. AI, CSR and Future Expansion</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 130</div>
+          <div class="qa-q">What exactly will AI do?</div>
+          <div class="qa-a">AI may assist with challenge categorization, personalized recommendations or evidence-review support. I will distinguish planned AI features from implemented functionality.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 131</div>
+          <div class="qa-q">Will AI automatically approve proof?</div>
+          <div class="qa-a">It should not be treated as a perfect or sole authority. Important verification decisions should have defined criteria and human oversight.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 132</div>
+          <div class="qa-q">Who is responsible if AI makes a mistake?</div>
+          <div class="qa-a">The platform needs a documented review, correction and appeal process, with responsibilities defined in its terms. AI should not be presented as infallible.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 133</div>
+          <div class="qa-q">Is ACTA useful without AI?</div>
+          <div class="qa-a">Yes. The core value proposition is coordination and impact tracking. AI is an optional enhancement, not a prerequisite for testing the basic workflow.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 134</div>
+          <div class="qa-q">How would CSR matching work?</div>
+          <div class="qa-a">It is a proposed future model in which eligible sponsors may support campaigns or milestones under agreed criteria. Mechanics and compliance need to be designed with partners.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 135</div>
+          <div class="qa-q">Why would a CSR company trust ACTA?</div>
+          <div class="qa-a">Trust would depend on credible NGO partners, reliable evidence, clear reporting, governance and demonstrated pilot results.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 136</div>
+          <div class="qa-q">Is ACTA partnered with the government?</div>
+          <div class="qa-a">I will not claim a government partnership unless a formal relationship exists. A public-authority console is a proposed roadmap feature.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 137</div>
+          <div class="qa-q">Why include a government console in the roadmap?</div>
+          <div class="qa-a">It could eventually support coordination and reporting for public-sector stakeholders, but the initial pilot does not depend on it.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 138</div>
+          <div class="qa-q">Will CSR funds be tracked separately?</div>
+          <div class="qa-a">Separate accounting and clear reporting would be important if CSR sponsorship is introduced, subject to partner requirements.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 139</div>
+          <div class="qa-q">Will personalization use personal data?</div>
+          <div class="qa-a">Only necessary data should be used, with clear purpose, access controls and appropriate consent or other lawful basis as required.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 140</div>
+          <div class="qa-q">How will you handle privacy?</div>
+          <div class="qa-a">I will minimize data collection, document purposes and retention, restrict access, protect information and follow applicable privacy requirements.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>11. Tough Questions and Pressure Test</h1>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 141</div>
+          <div class="qa-q">What would users lose if ACTA shut down tomorrow?</div>
+          <div class="qa-a">At this stage, the value depends on the pilot. The goal is to create reliable records of participation, campaign progress and evidence that partners find useful.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 142</div>
+          <div class="qa-q">Why not use WhatsApp directly?</div>
+          <div class="qa-a">WhatsApp can coordinate conversations, but ACTA aims to add structured campaign workflows, evidence review and progress reporting. The pilot must show these additions solve a real problem.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 143</div>
+          <div class="qa-q">Why incubate ACTA when traction is limited?</div>
+          <div class="qa-a">I have a prototype and a defined hypothesis, but still need validation. Incubation could help test the model with real partners and measurable milestones.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 144</div>
+          <div class="qa-q">Are you building a product or collecting features?</div>
+          <div class="qa-a">The product should be organized around one core workflow. I will prioritize the pilot’s essential features and defer advanced features.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 145</div>
+          <div class="qa-q">What is the MVP?</div>
+          <div class="qa-a">A focused version that lets a partner create a campaign, participants join and complete activities, evidence gets reviewed and progress is visible.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 146</div>
+          <div class="qa-q">What can you deliver in 30 days?</div>
+          <div class="qa-a">A realistic target is a defined pilot workflow, partner discovery, a tested demo and a measurement plan. External commitments depend on actual agreements.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 147</div>
+          <div class="qa-q">What will you deliberately not build now?</div>
+          <div class="qa-a">I would defer complex AI verification, government-facing tools, large-scale CSR matching and advanced gamification until the core pilot works.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 148</div>
+          <div class="qa-q">What if an NGO rejects the 5% fee?</div>
+          <div class="qa-a">I will understand the objection and test fixed service fees, subscriptions or sponsor-funded software services.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 149</div>
+          <div class="qa-q">What if the campaign succeeds but ACTA earns nothing?</div>
+          <div class="qa-a">The pilot can still validate the workflow, but long-term sustainability requires a separately validated paying customer and pricing model.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 150</div>
+          <div class="qa-q">What would show that the approach is not working?</div>
+          <div class="qa-a">Repeated low participation, no partner willingness to continue, high verification costs, weak evidence quality or no willingness to pay would indicate a need to revise the model.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 151</div>
+          <div class="qa-q">How will you test your biggest assumption?</div>
+          <div class="qa-a">I will run a small pilot and measure whether users complete activities, partners find the workflow useful and a potential customer is willing to pay.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 152</div>
+          <div class="qa-q">What if only 10 users participate?</div>
+          <div class="qa-a">I would interview participants and non-participants, examine onboarding friction and partner value, and improve the workflow before scaling.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 153</div>
+          <div class="qa-q">What impact metrics will you use?</div>
+          <div class="qa-a">Metrics may include active participants, completed activities, accepted evidence, campaign milestones, repeat participation and partner satisfaction.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 154</div>
+          <div class="qa-q">How will you evaluate failure?</div>
+          <div class="qa-a">I will define success criteria in advance, review the data honestly and change the product or target segment if the evidence does not support the current assumptions.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 155</div>
+          <div class="qa-q">Do you need money, users or institutional access?</div>
+          <div class="qa-a">My immediate priority is partner access and mentorship to validate a focused pilot. Any funding request should be tied to a specific budget and milestones.</div>
+          <div><span class="qa-tag status-prop">PROPOSED ARCHITECTURE (PENDING REVIEW)</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 156</div>
+          <div class="qa-q">Where do you see ACTA in three years?</div>
+          <div class="qa-a">The goal is to build a sustainable platform with validated institutional and NGO workflows, repeat usage and measurable outcomes. Scale will depend on pilot results.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 157</div>
+          <div class="qa-q">Why is your team suitable?</div>
+          <div class="qa-a">I will explain the team’s actual skills, product work and relevant experience, and identify where we need mentors or additional expertise.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 158</div>
+          <div class="qa-q">What is the weakest part of your prototype?</div>
+          <div class="qa-a">I will honestly identify the largest technical or operational gap, explain its impact and state how I plan to address it.</div>
+          <div><span class="qa-tag status-live">LIVE PROTOTYPE STATUS</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 159</div>
+          <div class="qa-q">Has the architecture been independently reviewed?</div>
+          <div class="qa-a">I will state whether a review has occurred. If not, an independent security and architecture review is a future task.</div>
+          <div><span class="qa-tag status-strat">STRATEGIC DEFENSE</span></div>
+        </div>
+        
+
+        <div class="qa-card">
+          <div class="qa-num">QUESTION 160</div>
+          <div class="qa-q">What should we expect in the first 90 days of incubation?</div>
+          <div class="qa-a">A focused pilot plan, partner discovery, tested core workflow, measurable usage and evidence of partner feedback and willingness to continue.</div>
+          <div><span class="qa-tag status-pilot">GROUNDED PILOT EXECUTION</span></div>
+        </div>
+        
+
+        <div class="sec-header">
+          <h1>12. Practical Problems and Responses</h1>
+        </div>
+        
+<p>NGO partners are difficult to secure</p>
+<p>Start with a narrow use case, personalize outreach and focus on one realistic pilot partner.</p>
+<p>Users register but do not return</p>
+<p>Simplify onboarding, offer meaningful activities and measure repeat participation.</p>
+<p>NGOs are unwilling to pay</p>
+<p>Demonstrate value through a pilot and test willingness to pay before locking the pricing model.</p>
+<p>Payment split is not approved</p>
+<p>Confirm the exact flow with the provider and redesign the billing arrangement with qualified advice.</p>
+<p>Fake evidence is submitted</p>
+<p>Use reviewer workflows, timestamps, duplicate checks and audit trails; do not claim fraud can be eliminated completely.</p>
+<p>Donation and campaign records do not match</p>
+<p>Reconcile provider transaction IDs, gross amounts, fees, refunds and net settlements.</p>
+<p>The demo or server fails</p>
+<p>Prepare a tested demo account, recording, screenshots and a concise offline explanation.</p>
+<p>Team disagreements occur</p>
+<p>Document roles, ownership, weekly goals and decision-making rules.</p>
+<p>The product scope keeps expanding</p>
+<p>Start with one institution, one NGO and one campaign; defer advanced features.</p>
+<p>Personal data is exposed</p>
+<p>Minimize collection, restrict access, secure storage and backups, and prepare an incident-response process.</p>
+<p>Campaign outcomes are not achieved</p>
+<p>Report results transparently, explain what was completed and document lessons learned.</p>
+<p>A competitor launches similar features</p>
+<p>Improve execution, partner relationships, operations, usability and demonstrated outcomes.</p>
+<p>The incubator does not provide funding</p>
+<p>Use mentorship, partner introductions and feedback where available, and explore other funding options separately.</p>
+<p>Users think ACTA is only a donation app</p>
+<p>Demonstrate volunteering, institutional participation, evidence and impact tracking—not just donations.</p>
+
+        <div class="sec-header">
+          <h1>13. Pitch Readiness Checklist</h1>
+        </div>
+        
+<p>Founder story</p>
+<p>Prepare a two-minute explanation of how the idea began with volunteer recruitment.</p>
+<p>Problem and solution</p>
+<p>Explain the problem and ACTA’s proposed solution in one sentence each.</p>
+<p>Prototype</p>
+<p>Test every feature you plan to demonstrate.</p>
+<p>Feature status</p>
+<p>Prepare a list separating implemented, partially implemented and planned features.</p>
+<p>Revenue model</p>
+<p>Explain the proposed 5% service fee and any subscription alternative.</p>
+<p>Payment flow</p>
+<p>Show the proposed NGO-direct donation flow and label it as subject to provider and compliance confirmation.</p>
+<p>Pilot</p>
+<p>Prepare a realistic plan for one institution, one NGO and one campaign.</p>
+<p>Competition</p>
+<p>Prepare a current feature-by-feature comparison without unsupported first/only claims.</p>
+<p>Validation</p>
+<p>Document actual outreach, responses, feedback and partner commitments separately.</p>
+<p>Incubation ask</p>
+<p>State the specific mentorship, partner introductions, validation and compliance support you want.</p>
+<p>Demo backup</p>
+<p>Keep a screen recording, screenshots and a tested demo account ready.</p>
+<p>Honesty</p>
+<p>Do not claim revenue, active users, formal partnerships, approvals or implemented features unless verified.</p>
+<h2>Final Preparation Advice</h2>
+<p>Do not memorize every answer word for word. Prioritize the problem, differentiation, prototype, revenue model, payment compliance and pilot plan. Be candid about gaps and explain how you will test assumptions.</p>
+</body>
+</html>

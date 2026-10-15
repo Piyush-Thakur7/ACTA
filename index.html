@@ -1,22 +1,1102 @@
-<!doctype html>
-<html lang="en" class="h-full dark">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ACTA by Resence | Small Acts, Big Impacts — Proof-Verified Micro-Donations</title>
-    <meta name="description" content="ACTA by Resence empowers students to make ₹10 micro-donations to verified NGOs with 100% video proof accountability." />
-    
-    <!-- Clean High-Trust SaaS Fonts (Space Grotesk + Inter) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Razorpay Checkout SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  </head>
-  <body class="h-full bg-[#0B0F17] text-slate-100 antialiased font-sans">
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACTA | Small Acts. Big Impact. — Verified Micro-Donation & Grassroots Aid Platform</title>
+  <meta name="description" content="ACTA by Team Resence (acta.resence.in) empowers students and everyday citizens to fund direct-to-need micro-aid starting at ₹10, verified with in-app camera video, GPS telemetry, and wholesale GST invoices." />
+  <link rel="canonical" href="https://acta.resence.in/" />
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="ACTA | Small Acts. Big Impact." />
+  <meta property="og:description" content="Direct-to-need micro-donations from ₹10 with 100% in-app video proof and wholesale GST invoice verification." />
+  <meta property="og:url" content="https://acta.resence.in/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/assets/brand/ACTA_Official_App_Icon_Square.png" />
+  <link rel="icon" type="image/png" href="/assets/brand/ACTA_Official_App_Icon_Square.png" />
+
+  <!-- Fonts: Space Grotesk + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Modern Flagship Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css?v=4.0.0" />
+
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="dark-mode">
+
+  <!-- ============================================================
+       STICKY NAVIGATION BAR
+       ============================================================ -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand" onclick="navigate('/'); return false;">
+        <img src="/assets/brand/ACTA_Official_Final_Logo_Transparent.png" alt="ACTA Logo" onerror="this.src='/assets/brand/ACTA_Official_App_Icon_Square.png'" />
+        <div>
+          <div class="nav-brand-title">ACTA</div>
+          <div class="nav-brand-tagline">Small Acts. Big Impact.</div>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-item active" onclick="navigate('/'); return false;">Home</a></li>
+        <li><a href="/causes" class="nav-item" onclick="navigate('/causes'); return false;">Micro-Causes (₹10)</a></li>
+        <li><a href="/communities" class="nav-item" onclick="navigate('/communities'); return false;">Campus Guilds</a></li>
+        <li><a href="/impact" class="nav-item" onclick="navigate('/impact'); return false;">Live Proofs</a></li>
+        <li><a href="/leaderboard" class="nav-item" onclick="navigate('/leaderboard'); return false;">Leaderboard</a></li>
+        <li><a href="/transparency" class="nav-item" onclick="navigate('/transparency'); return false;">Zero-Leakage (95/5)</a></li>
+        <li><a href="/fcra" class="nav-item" onclick="navigate('/fcra'); return false;">FCRA Policy</a></li>
+        <li><a href="/about" class="nav-item" onclick="navigate('/about'); return false;">About</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openVolunteerCameraModal()" title="Designated Head Volunteer In-App Camera">
+          <span>📹</span>
+          <span>Volunteer Mode</span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="navigate('/dashboard')" title="My Donations & Verification Dashboard">
+          <span>📋</span>
+          <span>My Donations</span>
+        </button>
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle Navigation">
+          <span>☰</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div id="mobileDrawer" class="mobile-drawer">
+    <a href="/" onclick="navigate('/'); toggleMobileMenu(); return false;">Home</a>
+    <a href="/causes" onclick="navigate('/causes'); toggleMobileMenu(); return false;">Micro-Causes (₹10)</a>
+    <a href="/communities" onclick="navigate('/communities'); toggleMobileMenu(); return false;">Campus Guilds</a>
+    <a href="/impact" onclick="navigate('/impact'); toggleMobileMenu(); return false;">Live Video Proofs</a>
+    <a href="/leaderboard" onclick="navigate('/leaderboard'); toggleMobileMenu(); return false;">Campus Leaderboard</a>
+    <a href="/transparency" onclick="navigate('/transparency'); toggleMobileMenu(); return false;">Zero-Leakage Math (95/5)</a>
+    <a href="/fcra" onclick="navigate('/fcra'); toggleMobileMenu(); return false;">FCRA Policy Gap</a>
+    <a href="/dashboard" onclick="navigate('/dashboard'); toggleMobileMenu(); return false;">My Donations Dashboard</a>
+    <a href="/about" onclick="navigate('/about'); toggleMobileMenu(); return false;">About Team Resence</a>
+    <div style="margin-top:auto; padding-top:20px;">
+      <button class="btn btn-primary btn-full" onclick="openVolunteerCameraModal(); toggleMobileMenu();">
+        📹 Open Volunteer In-App Camera
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN CONTENT (SINGLE PAGE APP ROUTER)
+       ============================================================ -->
+  <main style="padding-top: var(--nav-height); min-height: 80vh;">
+
+    <!-- ==========================================
+         VIEW 1: HOME
+         ========================================== -->
+    <div id="view-home" class="view-container">
+      
+      <!-- HERO SECTION -->
+      <section class="hero-section">
+        <div class="hero-glow"></div>
+        <div class="container hero-content">
+          <div class="hero-badge-wrap">
+            <span class="badge badge-emerald">
+              <span>🏛️</span>
+              <span>Bharat Udyam Sangam 2026 • GLBCRI Incubation • Social Innovation</span>
+            </span>
+          </div>
+
+          <h1 class="hero-title">
+            Direct Micro-Donations.<br />
+            <span class="text-gradient">Cryptographic Proof.</span>
+          </h1>
+
+          <p class="hero-subtitle">
+            Fund tangible aid units starting from just <strong class="text-emerald">₹10</strong>. Verified on the ground by partner NGOs using locked in-app camera video, live GPS telemetry, and wholesale GST invoices.
+          </p>
+
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" onclick="navigate('/causes')">
+              <span>🍲</span>
+              <span>Fund Micro-Causes (from ₹10)</span>
+            </button>
+            <button class="btn btn-secondary btn-lg" onclick="navigate('/impact')">
+              <span>📹</span>
+              <span>Watch Live Video Proofs</span>
+            </button>
+          </div>
+
+          <!-- TRUST METRIC BAR -->
+          <div class="trust-metrics-grid">
+            <div class="metric-card">
+              <div class="metric-number text-emerald">₹10</div>
+              <div class="metric-label">Micro-Ticket Size</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-number text-cyan">95%</div>
+              <div class="metric-label">Direct Ground Aid</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-number text-amber">100%</div>
+              <div class="metric-label">In-App Video Proof</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-number text-main">0%</div>
+              <div class="metric-label">Hidden Deductions</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THE FCRA POLICY GAP SECTION (FEATURED) -->
+      <section class="section-padding" style="background: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="container">
+          <div style="text-align: center; max-width: 760px; margin: 0 auto 40px;">
+            <span class="badge badge-amber" style="margin-bottom: 12px;">National Policy Question</span>
+            <h2 style="font-size: 2.2rem; margin-bottom: 14px;">Why Does Transparency Only Exist for Foreign Funds?</h2>
+            <p>
+              Under the <strong>FCRA Amendment Act</strong>, the government strictly regulates and tracks foreign donations to prevent misuse. Yet, domestic donations from our own Indian citizens still operate in a complete black box without real-time tracking or proof. 
+              <strong>ACTA solves this exact dilemma.</strong>
+            </p>
+          </div>
+
+          <div class="fcra-grid">
+            <div class="policy-card" style="border-left: 4px solid var(--amber);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="font-size: 1.25rem;">Foreign Funding (FCRA)</h3>
+                <span class="badge badge-dim">Government Monitored</span>
+              </div>
+              <ul style="color:var(--text-muted); font-size:0.9rem; line-height:1.7; padding-left:18px;">
+                <li>Mandatory dedicated SBI New Delhi main branch bank account.</li>
+                <li>Live public dashboard reporting and audit trail.</li>
+                <li>Administrative expenses capped at 20% to avoid fund diversion.</li>
+                <li>Strict regulatory consequences for non-compliance.</li>
+              </ul>
+              <div style="margin-top:16px; font-size:0.8rem; color:var(--amber); font-weight:600;">
+                ✓ Strict accountability enforced by law for foreign donors.
+              </div>
+            </div>
+
+            <div class="policy-card" style="border-left: 4px solid var(--emerald); background: rgba(16, 185, 129, 0.04);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="font-size: 1.25rem;">ACTA Domestic Solution</h3>
+                <span class="badge badge-emerald">Citizen Transparency</span>
+              </div>
+              <ul style="color:var(--text-muted); font-size:0.9rem; line-height:1.7; padding-left:18px;">
+                <li><strong>Micro-Donations from ₹10:</strong> Democratic giving for students and youth.</li>
+                <li><strong>In-App Live Video:</strong> Ground volunteers record delivery via locked in-app camera (gallery uploads blocked).</li>
+                <li><strong>Wholesale GST Bills:</strong> Linked vendor purchase receipts uploaded to donor dashboards.</li>
+                <li><strong>Strict ₹95/₹5 Split:</strong> 95% direct to field aid, 5% platform maintenance.</li>
+              </ul>
+              <div style="margin-top:16px; font-size:0.8rem; color:var(--emerald-light); font-weight:600;">
+                ✓ Full transparency brought to local domestic donors and student communities.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURED DIRECT-TO-NEED MICRO-CAUSES -->
+      <section class="section-padding">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 32px;">
+            <div>
+              <span class="badge badge-emerald" style="margin-bottom: 8px;">Direct-to-Need Catalog</span>
+              <h2 style="font-size: 2.2rem;">Fund Exact Physical Aid Units</h2>
+              <p>Every rupee is tied to a tangible item, distributed by verified NGOs in Gautam Buddha Nagar.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="navigate('/causes')">View All Causes →</button>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab-btn active" onclick="filterCauses('all', this)">All Items</button>
+            <button class="filter-tab-btn" onclick="filterCauses('meals', this)">🍲 Nutrition & Meals</button>
+            <button class="filter-tab-btn" onclick="filterCauses('ration', this)">📦 Student & Family Ration</button>
+            <button class="filter-tab-btn" onclick="filterCauses('winter', this)">🧣 Winter Warmth</button>
+            <button class="filter-tab-btn" onclick="filterCauses('education', this)">📚 Child Education</button>
+            <button class="filter-tab-btn" onclick="filterCauses('medical', this)">🩹 Primary Healthcare</button>
+          </div>
+
+          <div class="causes-grid" id="homeCausesGrid">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- THE 3-POINT PROOF VERIFICATION ENGINE -->
+      <section class="section-padding" style="background: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="container">
+          <div style="text-align: center; max-width: 720px; margin: 0 auto 48px;">
+            <span class="badge badge-cyan" style="margin-bottom: 10px;">Verification Architecture</span>
+            <h2 style="font-size: 2.2rem; margin-bottom: 12px;">The 3-Point Proof Verification Engine</h2>
+            <p>How ACTA guarantees zero fund diversion and 100% ground execution visibility.</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+            <div class="card-glass">
+              <div style="font-size: 2rem; margin-bottom: 16px;">📹</div>
+              <h3 style="font-size: 1.25rem; margin-bottom: 10px;">1. In-App Camera Only</h3>
+              <p style="font-size: 0.9rem; line-height: 1.6;">
+                Partner NGO head volunteers must record distribution videos directly using ACTA's in-app camera. <strong>Pre-recorded gallery uploads are strictly disabled</strong> to eliminate fake or recycled media.
+              </p>
+            </div>
+            <div class="card-glass">
+              <div style="font-size: 2rem; margin-bottom: 16px;">🛰️</div>
+              <h3 style="font-size: 1.25rem; margin-bottom: 10px;">2. GPS & NTP Telemetry</h3>
+              <p style="font-size: 0.9rem; line-height: 1.6;">
+                Every frame is watermarked with immutable satellite GPS coordinates, high-precision atomic timestamp (NTP), and SHA-256 frame hash to prove exact physical presence at the distribution site.
+              </p>
+            </div>
+            <div class="card-glass">
+              <div style="font-size: 2rem; margin-bottom: 16px;">🧾</div>
+              <h3 style="font-size: 1.25rem; margin-bottom: 10px;">3. Wholesale GST Invoices</h3>
+              <p style="font-size: 0.9rem; line-height: 1.6;">
+                Every distribution is matched with verified GST purchase bills from wholesale provision merchants, ensuring 100% of donor funds purchased supplies at bulk wholesale rates.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ZERO-LEAKAGE FINANCIAL CALCULATOR (95/5) -->
+      <section class="section-padding">
+        <div class="container">
+          <div class="calc-container">
+            <div style="text-align:center; max-width:680px; margin:0 auto 24px;">
+              <span class="badge badge-emerald" style="margin-bottom:8px;">Zero-Leakage Financial Model</span>
+              <h2 style="font-size: 2rem; margin-bottom: 10px;">Interactive Unit Economics Calculator</h2>
+              <p>Enter any donation amount and see exactly where every single rupee goes.</p>
+            </div>
+
+            <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+              <label class="form-label" style="font-size: 1rem; margin-bottom: 8px;">Donation Amount (₹)</label>
+              <input type="number" id="calcInputAmount" class="form-input" value="100" min="10" max="50000" step="10" oninput="updateCalculator(this.value)" style="text-align:center; font-size:1.8rem; font-family:var(--font-heading); font-weight:800; color:var(--emerald-light);" />
+              
+              <div class="calc-slider-wrap">
+                <input type="range" id="calcSlider" class="calc-slider" min="10" max="1000" step="10" value="100" oninput="updateCalculator(this.value)" />
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-dim); margin-top:6px;">
+                  <span>₹10 (Micro-Ticket)</span>
+                  <span>₹100 (Standard)</span>
+                  <span>₹500 (Impact Pack)</span>
+                  <span>₹1,000 (Community)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="calc-breakdown-grid">
+              <div class="calc-box-aid">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--emerald-light);">Direct Ground Aid (95%)</span>
+                  <span class="badge badge-emerald">Audited Delivery</span>
+                </div>
+                <div style="font-family:var(--font-heading); font-size:2.4rem; font-weight:800; color:var(--emerald-light); margin: 12px 0 4px;" id="calcAidValue">₹95.00</div>
+                <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+                  Allocated directly to partner NGOs for physical supplies (ration, meals, blankets) backed by authentic vendor GST invoices.
+                </p>
+              </div>
+
+              <div class="calc-box-fee">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Platform Maintenance (5%)</span>
+                  <span class="badge badge-dim">Tech Operations</span>
+                </div>
+                <div style="font-family:var(--font-heading); font-size:2.4rem; font-weight:800; color:var(--text-main); margin: 12px 0 4px;" id="calcFeeValue">₹5.00</div>
+                <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+                  Covers cloud hosting, cryptographic video verification hashing, and 20% internal Continuity Reserve.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPETITOR COMPARISON MATRIX -->
+      <section class="section-padding" style="background: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="container">
+          <div style="text-align: center; max-width: 720px; margin: 0 auto 36px;">
+            <span class="badge badge-cyan" style="margin-bottom: 8px;">Market Differentiation</span>
+            <h2 style="font-size: 2.2rem; margin-bottom: 10px;">Why ACTA Outperforms Existing Platforms</h2>
+            <p>Comparing ACTA with traditional medical and institutional crowdfunding giants.</p>
+          </div>
+
+          <div class="table-responsive">
+            <table class="comp-table">
+              <thead>
+                <tr>
+                  <th>Feature & Parameter</th>
+                  <th>Ketto</th>
+                  <th>Milaap</th>
+                  <th>Give.do</th>
+                  <th style="color:var(--emerald-light); background: rgba(16,185,129,0.12);">ACTA (Team Resence)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Minimum Ticket Size</strong></td>
+                  <td>₹500 – ₹1,000+</td>
+                  <td>₹500 – ₹1,000+</td>
+                  <td>₹250 – ₹500+</td>
+                  <td class="col-acta">₹10 (Accessible to all students)</td>
+                </tr>
+                <tr>
+                  <td><strong>Real-Time Delivery Proof</strong></td>
+                  <td>Medical / hospital bills</td>
+                  <td>Invoices & photos</td>
+                  <td>Quarterly reports</td>
+                  <td class="col-acta">Live in-app video + GPS telemetry</td>
+                </tr>
+                <tr>
+                  <td><strong>In-App Camera Lock</strong></td>
+                  <td>❌ No (Gallery upload)</td>
+                  <td>❌ No (Gallery upload)</td>
+                  <td>❌ No (Annual PDF)</td>
+                  <td class="col-acta">✅ Yes (Gallery blocked)</td>
+                </tr>
+                <tr>
+                  <td><strong>Dashboard Proof Updates</strong></td>
+                  <td>Email updates</td>
+                  <td>Campaign link</td>
+                  <td>Newsletter</td>
+                  <td class="col-acta">✅ "My Donations" Live Feed</td>
+                </tr>
+                <tr>
+                  <td><strong>Campus Impact Guilds</strong></td>
+                  <td>❌ No</td>
+                  <td>❌ No</td>
+                  <td>❌ No</td>
+                  <td class="col-acta">✅ Hostels & Dept Guilds</td>
+                </tr>
+                <tr class="highlight-acta">
+                  <td><strong>Gamification (Streaks/Badges)</strong></td>
+                  <td>❌ No</td>
+                  <td>❌ No</td>
+                  <td>❌ No</td>
+                  <td class="col-acta">✅ Giving Streaks & Leaderboards</td>
+                </tr>
+                <tr>
+                  <td><strong>Transparency Model</strong></td>
+                  <td>Aggregated overhead</td>
+                  <td>Aggregated overhead</td>
+                  <td>Institutional cuts</td>
+                  <td class="col-acta">Strict 95% Aid / 5% Platform Fee</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-top:12px; text-align:center;">
+            * Comparison based on publicly available platform disclosures. Feature availability may vary.
+          </div>
+        </div>
+      </section>
+
+      <!-- TEAM RESENCE & GLBCRI SHOWCASE -->
+      <section class="section-padding">
+        <div class="container">
+          <div style="text-align: center; max-width: 700px; margin: 0 auto 40px;">
+            <span class="badge badge-emerald" style="margin-bottom: 8px;">Founders & Incubation</span>
+            <h2 style="font-size: 2.2rem; margin-bottom: 10px;">Built by Team Resence</h2>
+            <p>Student innovators from GL Bajaj Institute of Management, Greater Noida.</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 980px; margin: 0 auto 40px;">
+            <div class="card-glass" style="text-align: center;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--emerald-dim); border: 2px solid var(--emerald-border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--emerald-light); margin: 0 auto 16px;">PS</div>
+              <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Piyush Singh</h3>
+              <div style="font-size: 0.8rem; color: var(--emerald-light); font-weight: 600; margin-bottom: 10px;">Founder & Technical Lead</div>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                BCA 2nd Year, Section 3C, GLBIM. Full-stack architecture, cryptographic proof pipeline, and web platform engineering.
+              </p>
+            </div>
+
+            <div class="card-glass" style="text-align: center;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--cyan-dim); border: 2px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--cyan); margin: 0 auto 16px;">DS</div>
+              <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Dimple Singh</h3>
+              <div style="font-size: 0.8rem; color: var(--cyan); font-weight: 600; margin-bottom: 10px;">Co-Founder & Presentation Lead</div>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Pitch strategy, NGO partner liaison, conclave presentation defense, and institutional documentation.
+              </p>
+            </div>
+
+            <div class="card-glass" style="text-align: center;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--amber-dim); border: 2px solid rgba(245,158,11,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--amber); margin: 0 auto 16px;">MC</div>
+              <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Mayank Chauhan</h3>
+              <div style="font-size: 0.8rem; color: var(--amber); font-weight: 600; margin-bottom: 10px;">Co-Founder & Marketing Lead</div>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Campus outreach, Campus Guilds mobilization, student community engagement, and hostel drive operations.
+              </p>
+            </div>
+          </div>
+
+          <div class="card-glass" style="max-width: 800px; margin: 0 auto; text-align: center; border-color: rgba(56,189,248,0.3); background: rgba(15,23,42,0.85);">
+            <div style="font-size:0.85rem; font-weight:700; text-transform:uppercase; color:var(--cyan); margin-bottom:6px;">Incubation Conclave Candidate</div>
+            <h3 style="font-size:1.35rem; margin-bottom:8px;">Bharat Udyam Sangam 2026: From Lab to Market</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted); max-width:620px; margin:0 auto 16px;">
+              Targeting pre-incubation at <strong>GL Bajaj Centre for Research and Incubation (GLBCRI)</strong> to execute our official 30-day campus micro-giving pilot across GL Bajaj hostels and formalize regional NGO MoUs.
+            </p>
+            <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+              <span class="badge badge-dim">DST NIDHI PRAYAS Pipeline</span>
+              <span class="badge badge-dim">MSME Seed Pathway</span>
+              <span class="badge badge-dim">Start in UP</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ==========================================
+         VIEW 2: CAUSES CATALOG
+         ========================================== -->
+    <div id="view-causes" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container">
+          <div style="margin-bottom: 32px;">
+            <span class="badge badge-emerald" style="margin-bottom: 8px;">Direct-to-Need Catalog</span>
+            <h1 style="font-size: 2.4rem;">Browse Micro-Causes (from ₹10)</h1>
+            <p>Select a tangible aid unit to fund directly. Every rupee purchases verified supplies backed by wholesale invoices.</p>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab-btn active" onclick="filterCausesCatalog('all', this)">All Items</button>
+            <button class="filter-tab-btn" onclick="filterCausesCatalog('meals', this)">🍲 Nutrition & Meals</button>
+            <button class="filter-tab-btn" onclick="filterCausesCatalog('ration', this)">📦 Student & Family Ration</button>
+            <button class="filter-tab-btn" onclick="filterCausesCatalog('winter', this)">🧣 Winter Warmth</button>
+            <button class="filter-tab-btn" onclick="filterCausesCatalog('education', this)">📚 Child Education</button>
+            <button class="filter-tab-btn" onclick="filterCausesCatalog('medical', this)">🩹 Primary Healthcare</button>
+          </div>
+
+          <div class="causes-grid" id="catalogCausesGrid">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 3: CAMPUS GUILDS (COMMUNITIES)
+         ========================================== -->
+    <div id="view-communities" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:32px;">
+            <div>
+              <span class="badge badge-cyan" style="margin-bottom: 8px;">College Movements</span>
+              <h1 style="font-size: 2.4rem;">Campus Impact Guilds</h1>
+              <p>Join forces with your college hostel, section, or department to fund community aid drives together.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openCreateGuildModal()">+ Create Campus Guild</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:24px;" id="guildsGrid">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 4: LIVE PROOFS FEED
+         ========================================== -->
+    <div id="view-impact" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container">
+          <div style="margin-bottom: 32px;">
+            <span class="badge badge-amber" style="margin-bottom: 8px;">Public Audit Stream</span>
+            <h1 style="font-size: 2.4rem;">Live Field Proof Stream</h1>
+            <p>Real-time delivery videos, GPS coordinates, and wholesale GST invoices uploaded by partner NGOs.</p>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:24px;" id="proofsGrid">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 5: CAMPUS LEADERBOARD
+         ========================================== -->
+    <div id="view-leaderboard" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container">
+          <div style="margin-bottom: 32px;">
+            <span class="badge badge-emerald" style="margin-bottom: 8px;">Gamified Impact</span>
+            <h1 style="font-size: 2.4rem;">Campus Impact Leaderboard</h1>
+            <p>Friendly competition between GL Bajaj hostels, departments, and changemaker students.</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px;">
+            <div class="card-glass">
+              <h3 style="font-size: 1.25rem; margin-bottom: 16px;">Top Campus Guilds</h3>
+              <div class="table-responsive">
+                <table class="comp-table">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Guild / Campus Group</th>
+                      <th>Members</th>
+                      <th>Units Funded</th>
+                      <th>Impact XP</th>
+                    </tr>
+                  </thead>
+                  <tbody id="leaderboardGuildsBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card-glass">
+              <h3 style="font-size: 1.25rem; margin-bottom: 16px;">🔥 Top Streak Champions</h3>
+              <div id="leaderboardStreaksList" style="display:flex; flex-direction:column; gap:14px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 6: MY DONATIONS USER DASHBOARD
+         ========================================== -->
+    <div id="view-dashboard" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container">
+          
+          <!-- User Profile & Streak Header -->
+          <div class="card-glass" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(17,24,39,0.9) 0%, rgba(15,23,42,0.95) 100%);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 18px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--emerald-dim); border: 2px solid var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--emerald-light);">
+                  PS
+                </div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <h2 style="font-size: 1.5rem; margin:0;" id="userDashName">Piyush Singh</h2>
+                    <span class="badge badge-emerald">Verified Changemaker</span>
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+                    Affiliation: <strong>GL Bajaj BCA Section 3C Guild</strong> | Member ID: <code>ACTA-GLB-0082</code>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Streak & Quick Stats -->
+              <div style="display: flex; gap: 16px; align-items: center;">
+                <div style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); padding: 10px 18px; border-radius: var(--radius-sm); text-align: center;">
+                  <div style="font-size: 1.3rem; font-weight: 800; color: var(--amber);">🔥 5-Day Streak</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Active Giving Habit</div>
+                </div>
+                <div style="background: rgba(16,185,129,0.12); border: 1px solid var(--emerald-border); padding: 10px 18px; border-radius: var(--radius-sm); text-align: center;">
+                  <div style="font-size: 1.3rem; font-weight: 800; color: var(--emerald-light);" id="userTotalDonated">₹450</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">18 Units Funded</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard Navigation Tabs -->
+          <div class="filter-tabs" style="margin-bottom: 24px;">
+            <button class="filter-tab-btn active" onclick="switchDashTab('donations', this)">📋 My Donations & Proofs</button>
+            <button class="filter-tab-btn" onclick="switchDashTab('badges', this)">🏅 Badges & Milestones</button>
+            <button class="filter-tab-btn" onclick="switchDashTab('guild', this)">🏛️ My Campus Guild</button>
+            <button class="filter-tab-btn" onclick="switchDashTab('advisor', this)">🤖 AI Impact Advisor</button>
+          </div>
+
+          <!-- TAB 1: MY DONATIONS & LIVE VERIFICATION TRACKER -->
+          <div id="dashTab-donations" class="dash-subtab">
+            <div style="margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <h3 style="font-size: 1.25rem;">Live Donation Audit Trail</h3>
+                <p style="font-size: 0.85rem;">Every donation includes a 5-point status progression, live video proof, and linked wholesale GST bill.</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="navigate('/causes')">+ Fund Another Unit (₹10)</button>
+            </div>
+
+            <div id="userDonationsList">
+              <!-- Populated dynamically with status trackers -->
+            </div>
+          </div>
+
+          <!-- TAB 2: BADGES -->
+          <div id="dashTab-badges" class="dash-subtab hidden">
+            <h3 style="font-size: 1.25rem; margin-bottom: 16px;">Milestone Badges & Social Recognition</h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:20px;" id="userBadgesGrid">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- TAB 3: GUILD -->
+          <div id="dashTab-guild" class="dash-subtab hidden">
+            <div class="card-glass">
+              <h3 style="font-size: 1.25rem; margin-bottom: 8px;">GL Bajaj BCA Section 3C Guild</h3>
+              <p style="font-size: 0.88rem; margin-bottom: 20px;">Rank #2 on Campus • 620 Units Funded • 42 Active Student Donors</p>
+              <div style="display:flex; gap:12px;">
+                <button class="btn btn-primary btn-sm" onclick="alert('Invite link copied: acta.resence.in/guild/glb-bca3c')">Copy Guild Invite Link</button>
+                <button class="btn btn-secondary btn-sm" onclick="navigate('/leaderboard')">View Campus Leaderboard</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: AI IMPACT ADVISOR -->
+          <div id="dashTab-advisor" class="dash-subtab hidden">
+            <div class="card-glass" style="max-width: 640px;">
+              <h3 style="font-size: 1.25rem; margin-bottom: 8px;">🤖 ACTA Micro-Allocation Advisor</h3>
+              <p style="font-size: 0.85rem; margin-bottom: 20px;">Plan your monthly student pocket-change giving for maximum direct grassroots impact.</p>
+              <div class="form-group">
+                <label class="form-label">Monthly Giving Budget (₹)</label>
+                <input type="number" id="advisorBudget" class="form-input" value="100" min="10" />
+              </div>
+              <button class="btn btn-primary" onclick="runAiAdvisor()">Generate Optimal Impact Plan</button>
+              <div id="advisorResult" style="margin-top:20px; font-size:0.9rem; line-height:1.6;" class="hidden"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 7: ABOUT TEAM RESENCE & GLBCRI
+         ========================================== -->
+    <div id="view-about" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container" style="max-width: 860px;">
+          <span class="badge badge-emerald" style="margin-bottom: 8px;">Master Architecture</span>
+          <h1 style="font-size: 2.6rem; margin-bottom: 16px;">About ACTA by Team Resence</h1>
+          
+          <div class="card-glass" style="margin-bottom: 24px;">
+            <h3 style="font-size: 1.3rem; margin-bottom: 12px;">The Mission</h3>
+            <p style="font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">
+              ACTA was born out of a simple observation at GL Bajaj: students want to give, but they cannot afford ₹500 minimum tickets, and they don't trust black-box charitable accounts. 
+              By lowering the donation threshold to ₹10 and requiring ground NGOs to record live video proof via in-app camera with linked wholesale GST bills, ACTA makes giving democratic, joyful, and 100% transparent.
+            </p>
+            <p style="font-size: 0.95rem; line-height: 1.7;">
+              Operated under Team Resence (<code>resence.in</code>), ACTA is preparing for its physical incubation defense at <strong>Bharat Udyam Sangam 2026</strong> on 31st October 2026 at the <strong>GL Bajaj Centre for Research and Incubation (GLBCRI)</strong>.
+            </p>
+          </div>
+
+          <div class="card-glass" style="margin-bottom: 24px;">
+            <h3 style="font-size: 1.3rem; margin-bottom: 12px;">Executive Governance & Legal Safe Harbor</h3>
+            <ul style="color:var(--text-muted); font-size:0.9rem; line-height:1.7; padding-left:20px;">
+              <li>Positioned as an automated SaaS technical intermediary under Section 79 of the Information Technology Act, 2000.</li>
+              <li>Canonical ₹100 Split: ₹95 direct ground aid, ₹5 platform fee (retaining a 20% Continuity Reserve).</li>
+              <li>Partner NGO verification via NITI Aayog NGO-DARPAN and Section 12A/80G status.</li>
+              <li>Live prototypes accessible at <code>acta.resence.in</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 8: TRANSPARENCY & ZERO LEAKAGE
+         ========================================== -->
+    <div id="view-transparency" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container" style="max-width: 860px;">
+          <span class="badge badge-emerald" style="margin-bottom: 8px;">Financial Model</span>
+          <h1 style="font-size: 2.6rem; margin-bottom: 16px;">Zero-Leakage Financial Architecture</h1>
+          <p style="margin-bottom: 32px;">Every single rupee donated on ACTA follows an audited, strictly bound mathematical split.</p>
+
+          <div class="card-glass" style="margin-bottom: 24px;">
+            <div style="font-family:var(--font-heading); font-size:1.6rem; font-weight:800; color:var(--emerald-light); margin-bottom:12px;">The Canonical ₹100 Flow</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+              <div style="background:rgba(16,185,129,0.08); border:1px solid var(--emerald-border); padding:20px; border-radius:var(--radius-sm);">
+                <div style="font-size:1.8rem; font-weight:800; color:var(--emerald-light);">₹95.00 (95%)</div>
+                <div style="font-size:0.85rem; font-weight:700; text-transform:uppercase; margin:4px 0 8px;">Direct Ground Aid</div>
+                <p style="font-size:0.8rem; color:var(--text-muted);">
+                  Min 90% (₹85.50) must purchase bulk supplies backed by GST bills. Max 10% (₹9.50) permitted for verified local transport and ground fuel.
+                </p>
+              </div>
+              <div style="background:rgba(255,255,255,0.04); border:1px solid var(--border); padding:20px; border-radius:var(--radius-sm);">
+                <div style="font-size:1.8rem; font-weight:800; color:var(--text-main);">₹5.00 (5%)</div>
+                <div style="font-size:0.85rem; font-weight:700; text-transform:uppercase; margin:4px 0 8px;">ACTA Platform Fee</div>
+                <p style="font-size:0.8rem; color:var(--text-muted);">
+                  Covers cloud hosting, cryptographic video hashing, server uptime, and ₹1.00 (20%) retained for the emergency Continuity Reserve.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==========================================
+         VIEW 9: FCRA POLICY DILEMMA
+         ========================================== -->
+    <div id="view-fcra" class="view-container hidden">
+      <section class="section-padding">
+        <div class="container" style="max-width: 860px;">
+          <span class="badge badge-amber" style="margin-bottom: 8px;">Policy Context</span>
+          <h1 style="font-size: 2.6rem; margin-bottom: 16px;">The FCRA Contrast & Domestic Giving</h1>
+          
+          <div class="card-glass" style="margin-bottom: 24px;">
+            <p style="font-size: 1rem; line-height: 1.8; margin-bottom: 18px;">
+              Under the <strong>Foreign Contribution (Regulation) Amendment Act</strong>, the Indian Parliament enacted stringent measures to ensure that foreign donations entering India are strictly accounted for down to the exact rupee, routed exclusively through designated SBI accounts with mandatory quarterly public filings.
+            </p>
+            <div style="padding:16px 20px; background:rgba(245,158,11,0.1); border-left:4px solid var(--amber); border-radius:4px; margin-bottom:18px;">
+              <strong style="color:var(--amber);">The Core Question:</strong> <em>Why should rigorous digital transparency exist only for foreign donations, while domestic contributions from everyday Indian citizens and students remain in an opaque black box?</em>
+            </div>
+            <p style="font-size: 1rem; line-height: 1.8;">
+              ACTA bridges this exact governance and trust void. By requiring in-app live video recording, immutable GPS watermarking, and linked wholesale vendor GST tax invoices for every single delivery starting at ₹10, ACTA empowers domestic donors with institutional-grade proof.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- ============================================================
+       MODALS SYSTEM
+       ============================================================ -->
+
+  <!-- 1. ONE-CLICK INSTANT MICRO-DONATION MODAL -->
+  <div id="donateModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeDonateModal()">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeDonateModal()">✕</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <span style="font-size:1.8rem;" id="modalCauseIcon">🍲</span>
+        <div>
+          <h3 style="font-size: 1.3rem; margin:0;" id="modalCauseTitle">Warm Khichdi Meal</h3>
+          <div style="font-size: 0.8rem; color: var(--emerald-light); font-weight: 600;" id="modalCauseUnitPrice">₹50 per meal</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Select Quantity / Units to Fund</label>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button class="btn btn-secondary" onclick="adjustUnits(-1)" style="width:40px; height:40px; font-size:1.2rem;">−</button>
+          <input type="number" id="donateUnits" class="form-input" value="1" min="1" max="100" style="text-align:center; font-size:1.2rem; font-weight:800; font-family:var(--font-heading);" onchange="calcTotalDonation()" />
+          <button class="btn btn-secondary" onclick="adjustUnits(1)" style="width:40px; height:40px; font-size:1.2rem;">+</button>
+        </div>
+      </div>
+
+      <!-- Quick Preset Buttons -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="filter-tab-btn" onclick="setDonatePreset(10)">₹10</button>
+        <button class="filter-tab-btn" onclick="setDonatePreset(50)">₹50</button>
+        <button class="filter-tab-btn" onclick="setDonatePreset(100)">₹100</button>
+        <button class="filter-tab-btn" onclick="setDonatePreset(250)">₹250</button>
+        <button class="filter-tab-btn" onclick="setDonatePreset(500)">₹500</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Associate with Campus Guild (Optional)</label>
+        <select id="donateGuildSelect" class="form-input" style="background:#0F172A;">
+          <option value="glb-bca3c">GL Bajaj BCA Section 3C Guild</option>
+          <option value="glb-hostelb">GL Bajaj Boys Hostel Block-B Guild</option>
+          <option value="glb-btechcs">B.Tech CSE Innovators Clan</option>
+          <option value="glb-alpha">Girls Hostel Alpha Guild</option>
+          <option value="general">Independent Student Contributor</option>
+        </select>
+      </div>
+
+      <!-- Total Price Summary Box -->
+      <div style="background:rgba(16,185,129,0.08); border:1px solid var(--emerald-border); border-radius:var(--radius-sm); padding:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Total Payable</div>
+          <div style="font-size:0.75rem; color:var(--emerald-light);">95% Direct Aid • 5% Platform Maintenance</div>
+        </div>
+        <div style="font-family:var(--font-heading); font-size:1.8rem; font-weight:800; color:var(--emerald-light);" id="modalTotalPayable">₹50.00</div>
+      </div>
+
+      <!-- Simulated Instant UPI Checkout -->
+      <div style="margin-bottom:16px;">
+        <label class="form-label">Pay via Instant 0% MDR UPI</label>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          <button class="btn btn-secondary btn-sm" onclick="processMockUpi('Google Pay')">Google Pay</button>
+          <button class="btn btn-secondary btn-sm" onclick="processMockUpi('PhonePe')">PhonePe</button>
+          <button class="btn btn-secondary btn-sm" onclick="processMockUpi('Paytm')">Paytm UPI</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" onclick="executeDonation()">
+        <span>✓</span>
+        <span>Confirm & Generate Audit Receipt</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. INTERACTIVE VIDEO PROOF PLAYER MODAL -->
+  <div id="videoProofModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeVideoProofModal()">
+    <div class="modal-box" style="max-width: 800px; padding: 24px;">
+      <button class="modal-close-btn" onclick="closeVideoProofModal()">✕</button>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span class="badge badge-emerald" style="margin-bottom:4px;">Verified Live Execution</span>
+          <h3 style="font-size: 1.25rem; margin:0;" id="videoProofTitle">Distribution Proof</h3>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted);" id="videoProofDate">2026-10-12 • 14:30 IST</div>
+      </div>
+
+      <!-- VIDEO PLAYER WITH LIVE HUD OVERLAY -->
+      <div class="video-player-container">
+        <!-- Sample video or dynamic canvas stream -->
+        <video id="proofVideoElem" controls autoplay loop playsinline poster="/assets/brand/ACTA_Official_App_Icon_Square.png">
+          <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+          Your browser does not support video playback.
+        </video>
+
+        <!-- LIVE HUD WATERMARK OVERLAY -->
+        <div class="hud-overlay">
+          <div class="hud-top">
+            <div class="hud-badge-rec">
+              <span class="hud-rec-dot"></span>
+              <span>VERIFIED IN-APP RECORDING</span>
+            </div>
+            <div style="background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.2);">
+              IN-APP WEBRTC LOCK: GALLERY DISABLED
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div class="hud-telemetry">
+              <div class="hud-telemetry-item">
+                <span class="hud-telemetry-label">GPS:</span>
+                <span class="hud-telemetry-value" id="hudGps">28.4744° N, 77.5040° E</span>
+              </div>
+              <div class="hud-telemetry-item">
+                <span class="hud-telemetry-label">LOC:</span>
+                <span class="hud-telemetry-value" id="hudLoc">Surajpur Slum Cluster, Greater Noida</span>
+              </div>
+              <div class="hud-telemetry-item">
+                <span class="hud-telemetry-label">VOL:</span>
+                <span class="hud-telemetry-value" id="hudVol">VOL-8821 (Head Volunteer Verified)</span>
+              </div>
+            </div>
+
+            <div style="text-align:right; background:rgba(0,0,0,0.7); padding:6px 10px; border-radius:4px; font-size:0.7rem;">
+              <div>FRAME HASH: <code style="color:var(--cyan);" id="hudHash">e3b0c442...98b1</code></div>
+              <div>NTP TIME: <span style="color:#FFF;" id="hudNtp">2026-10-12T09:00:14Z</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons under video -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:12px;">
+        <button class="btn btn-secondary btn-sm" onclick="openInvoiceModalFromProof()">
+          <span>🧾</span>
+          <span>View Linked Wholesale GST Invoice</span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="downloadAuditReceipt()">
+          <span>📥</span>
+          <span>Download Audit Certificate</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. WHOLESALE VENDOR GST INVOICE MODAL -->
+  <div id="invoiceModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeInvoiceModal()">
+    <div class="modal-box" style="max-width: 650px; background: #FFFFFF; color: #111827; border: 1px solid #E2E8F0;">
+      <button class="modal-close-btn" onclick="closeInvoiceModal()" style="color:#111827; background:#F1F5F9;">✕</button>
+      
+      <div style="border-bottom: 2px solid #0F172A; padding-bottom: 12px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div style="font-size: 0.75rem; font-weight:800; color:#64748B; text-transform:uppercase;">Wholesale Vendor Tax Invoice</div>
+          <h3 style="font-size: 1.4rem; color: #0F172A; margin: 4px 0;">BANSAL PROVISIONS & GRAIN WHOLESALE</h3>
+          <div style="font-size: 0.8rem; color:#475569;">Wholesale Market, Phase-II, Greater Noida (UP) • GSTIN: <strong>09AABCB1234F1Z8</strong></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.8rem; font-weight:700; color:#059669; background:#ECFDF5; padding:4px 10px; border-radius:4px;">GST COMPLIANT</div>
+          <div style="font-size:0.8rem; margin-top:4px;">Inv #INV-2026-9042</div>
+          <div style="font-size:0.75rem; color:#64748B;">Date: 12-Oct-2026</div>
+        </div>
+      </div>
+
+      <div style="font-size:0.85rem; margin-bottom:16px;">
+        <div><strong>Billed To:</strong> Jan Seva Foundation (Reg UP/2023/0182)</div>
+        <div><strong>Campaign ID:</strong> ACTA-FOOD-GRN-092 • <strong>Payment:</strong> Direct Escrow Account</div>
+      </div>
+
+      <!-- INVOICE ITEMS TABLE -->
+      <table style="width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:16px;">
+        <thead>
+          <tr style="background:#F8FAFC; border-bottom:1px solid #CBD5E1;">
+            <th style="padding:8px; text-align:left;">Item & Description</th>
+            <th style="padding:8px; text-align:center;">HSN</th>
+            <th style="padding:8px; text-align:right;">Qty</th>
+            <th style="padding:8px; text-align:right;">Wholesale Rate</th>
+            <th style="padding:8px; text-align:right;">Total (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #E2E8F0;">
+            <td style="padding:8px;">Nutritional High-Protein Biscuits (50g packs)</td>
+            <td style="padding:8px; text-align:center;">1905</td>
+            <td style="padding:8px; text-align:right;">250 pcs</td>
+            <td style="padding:8px; text-align:right;">₹8.50</td>
+            <td style="padding:8px; text-align:right;">₹2,125.00</td>
+          </tr>
+          <tr style="border-bottom:1px solid #E2E8F0;">
+            <td style="padding:8px;">Fresh Pasteurized Milk Packs (200ml)</td>
+            <td style="padding:8px; text-align:center;">0401</td>
+            <td style="padding:8px; text-align:right;">100 pcs</td>
+            <td style="padding:8px; text-align:right;">₹21.00</td>
+            <td style="padding:8px; text-align:right;">₹2,100.00</td>
+          </tr>
+          <tr style="background:#F8FAFC; font-weight:700;">
+            <td colspan="4" style="padding:10px; text-align:right;">Total Wholesale Supply Cost (Inc. 5% GST):</td>
+            <td style="padding:10px; text-align:right; color:#059669; font-size:1rem;">₹4,225.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="background:#F1F5F9; padding:12px; border-radius:6px; font-size:0.75rem; color:#475569; display:flex; justify-content:space-between; align-items:center;">
+        <div>Audited against ACTA Escrow Release Voucher #ACTA-ESC-00918</div>
+        <div style="color:#059669; font-weight:700;">✓ Digitally Certified</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. VOLUNTEER IN-APP CAMERA SIMULATOR MODAL -->
+  <div id="volunteerCameraModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeVolunteerCameraModal()">
+    <div class="modal-box" style="max-width: 720px;">
+      <button class="modal-close-btn" onclick="closeVolunteerCameraModal()">✕</button>
+      
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+        <span style="font-size:1.6rem;">📹</span>
+        <div>
+          <h3 style="font-size:1.3rem; margin:0;">Designated Head Volunteer In-App Camera</h3>
+          <div style="font-size:0.8rem; color:var(--emerald-light);">Live WebRTC Camera Stream • Gallery Upload Strictly Blocked</div>
+        </div>
+      </div>
+
+      <!-- CAMERA VIEWFINDER -->
+      <div style="position:relative; width:100%; aspect-ratio:16/9; background:#000000; border-radius:var(--radius-md); overflow:hidden; margin-bottom:16px;">
+        <video id="volunteerCamVideo" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+        
+        <!-- Camera HUD Overlay -->
+        <div class="hud-overlay">
+          <div class="hud-top">
+            <div class="hud-badge-rec" id="camRecIndicator" style="display:none;">
+              <span class="hud-rec-dot"></span>
+              <span id="camRecTime">REC 00:00</span>
+            </div>
+            <div style="background:rgba(0,0,0,0.6); padding:4px 8px; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.2);">
+              HARDWARE CAMERA LOCK (CAMERA-ONLY)
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div class="hud-telemetry" style="font-size:0.75rem;">
+              <div>LAT/LNG: <span style="color:var(--emerald-light);">28.4744° N, 77.5040° E</span></div>
+              <div>LOCATION: <span>Greater Noida, Uttar Pradesh</span></div>
+              <div>VOLUNTEER: <span>VOL-8821 (Head Verified)</span></div>
+            </div>
+            <div style="background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:4px; font-size:0.7rem;">
+              GPS ACCURACY: ±2.4m
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recording Controls -->
+      <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <button id="btnStartRec" class="btn btn-primary" style="flex:1;" onclick="startVolunteerRecording()">
+          <span>🔴</span>
+          <span>Start Recording Live Proof</span>
+        </button>
+        <button id="btnStopRec" class="btn btn-secondary" style="flex:1; display:none;" onclick="stopVolunteerRecording()">
+          <span>⏹️</span>
+          <span>Stop & Attach Vendor Bill</span>
+        </button>
+      </div>
+
+      <!-- Submission Form after Recording -->
+      <div id="volunteerSubmitForm" style="display:none;" class="card-glass">
+        <h4 style="font-size:1rem; margin-bottom:8px;">Attach Delivery Details & Wholesale Invoice</h4>
+        <div class="form-group">
+          <label class="form-label">Campaign</label>
+          <select id="volCampSelect" class="form-input" style="background:#0F172A;">
+            <option value="1">Nutritional Biscuit & Energy Pack Drive (Surajpur)</option>
+            <option value="2">Warm Khichdi Meal Distribution (Knowledge Park)</option>
+            <option value="3">Winter Blanket Relief Mission (Kasna Pavements)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vendor GST Purchase Bill Attachment</label>
+          <input type="text" class="form-input" value="Bansal Wholesale Provisions Tax Invoice #INV-2026-9042 verified (₹4,225)" readonly />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="submitVolunteerProof()">
+          <span>🚀</span>
+          <span>Submit to Live Verification Pipeline</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer"></div>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <img src="/assets/brand/ACTA_Official_Final_Logo_Transparent.png" alt="ACTA" style="height:32px;" onerror="this.src='/assets/brand/ACTA_Official_App_Icon_Square.png'" />
+            <span style="font-family:var(--font-heading); font-size:1.4rem; font-weight:800; color:#FFFFFF;">ACTA</span>
+          </div>
+          <p style="font-size:0.85rem; line-height:1.6; margin-bottom:16px;">
+            Direct-to-need micro-donation and grassroots aid platform. Verified with in-app live camera video, GPS telemetry, and wholesale GST invoices.
+          </p>
+          <div style="font-size:0.78rem; color:var(--text-dim);">
+            An Initiative by <strong>Team Resence</strong> (<code>resence.in</code>) | GL Bajaj Institute of Management, Greater Noida
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:16px;">Platform</h4>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:0.85rem; color:var(--text-muted);">
+            <li><a href="/causes" onclick="navigate('/causes'); return false;">Micro-Causes (₹10)</a></li>
+            <li><a href="/communities" onclick="navigate('/communities'); return false;">Campus Guilds</a></li>
+            <li><a href="/impact" onclick="navigate('/impact'); return false;">Live Proof Stream</a></li>
+            <li><a href="/leaderboard" onclick="navigate('/leaderboard'); return false;">Leaderboard</a></li>
+            <li><a href="/transparency" onclick="navigate('/transparency'); return false;">Zero-Leakage (95/5)</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:16px;">Policy & Trust</h4>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:0.85rem; color:var(--text-muted);">
+            <li><a href="/fcra" onclick="navigate('/fcra'); return false;">The FCRA Contrast</a></li>
+            <li><a href="/about" onclick="navigate('/about'); return false;">Safe Harbor Compliance</a></li>
+            <li><a href="/about" onclick="navigate('/about'); return false;">GLBCRI Conclave</a></li>
+            <li><a href="/dashboard" onclick="navigate('/dashboard'); return false;">My Donations</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:16px;">Incubation</h4>
+          <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;">
+            <strong>Bharat Udyam Sangam 2026</strong><br />
+            GL Bajaj Centre for Research & Incubation (GLBCRI)<br />
+            Greater Noida, Uttar Pradesh<br />
+            <span style="color:var(--emerald-light); font-weight:700;">Student Innovation Track</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border); padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:0.78rem; color:var(--text-dim);">
+        <div>© 2026 ACTA by Team Resence. All rights reserved. Target domain: <code>acta.resence.in</code></div>
+        <div style="display:flex; gap:16px;">
+          <span>v4.0 Flagship Prototype</span>
+          <span>Small Acts. Big Impact.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Controller Script -->
+  <script src="/js/app.js?v=4.0.0"></script>
+</body>
 </html>

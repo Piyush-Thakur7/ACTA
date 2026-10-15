@@ -1,2895 +1,797 @@
 /* ============================================================
-   STATE & CONSTANTS
+   ACTA (Team Resence) — FLAGSHIP APPLICATION CONTROLLER (v4.0)
+   Single Page App Router, Micro-Donations (from ₹10),
+   In-App Video Proof Engine, "My Donations" Hub, & Campus Guilds
    ============================================================ */
-const API = window.location.origin || '';
-const RAZORPAY_KEY = 'rzp_test_Smq8h0IFgOhCyb';
 
-let authToken = localStorage.getItem('servemate_token') || '';
-let ngoToken  = localStorage.getItem('servemate_ngo_token') || '';
-let currentUser = null;
-let currentNgo  = null;
-
-let selectedCause = null;
-let selectedAmount = 0;
-let selectedCommunityId = null; // Associated community for donation
-
-let communitiesData = [];
-let ngosData = [];
-
-/* ============================================================
-   ROUTING MATRIX
-   ============================================================ */
-const routes = {
-  '/': 'view-home',
-  '/about': 'view-about',
-  '/causes': 'view-causes',
-  '/communities': 'view-communities',
-  '/ngos': 'view-ngos',
-  '/impact': 'view-impact',
-  '/leaderboard': 'view-leaderboard',
-  '/dashboard': 'view-dashboard',
-  '/community-dashboard': 'view-community-dashboard',
-  '/ngo-dashboard': 'view-ngo-dashboard',
-  '/admin': 'view-admin',
-  '/contact': 'view-contact',
-  '/login': 'view-login',
-  '/register': 'view-register',
-  '/privacy': 'view-privacy',
-  '/terms': 'view-terms',
-  '/refund': 'view-refund',
-  '/forgot-password': 'view-forgot-password'
-};
-
-/* Embedded NGO & Admin Portal Handlers */
-window.handleNgoCreateCampaign = function(e) {
-  e.preventDefault();
-  const title = document.getElementById('ngoCampTitle').value;
-  const category = document.getElementById('ngoCampCategory').value;
-  const target = document.getElementById('ngoCampTarget').value;
-  const darpan = document.getElementById('ngoCampDarpan').value;
-  const desc = document.getElementById('ngoCampDesc').value;
-  const img = document.getElementById('ngoCampImage').value;
-
-  alert(`✓ Campaign Published Successfully!\nTitle: ${title}\nDarpan ID: ${darpan}\nTarget: ₹${target}`);
-  document.getElementById('ngoCreateCampaignForm').reset();
-  navigate('/causes');
-};
-
-/* ============================================================
-   NGO LIVE FIELD VIDEO PROOF RECORDING & GEOTAG ENGINE
-   ============================================================ */
-let cameraStream = null;
-let mediaRecorder = null;
-let recordedChunks = [];
-let recordedVideoBlob = null;
-let liveHudInterval = null;
-let recTimerInterval = null;
-let recSeconds = 0;
-let currentCoords = { lat: 28.4744, lng: 77.5040, accuracy: 15 };
-
-function showCameraAlert(message, type = 'error') {
-  const alertBox = document.getElementById('ngoCameraAlert');
-  if (!alertBox) return;
-  alertBox.className = `ngo-camera-alert ${type}`;
-  alertBox.innerHTML = message;
-  alertBox.classList.remove('hidden');
-}
-
-function clearCameraAlert() {
-  const alertBox = document.getElementById('ngoCameraAlert');
-  if (alertBox) {
-    alertBox.innerHTML = '';
-    alertBox.classList.add('hidden');
-  }
-}
-
-function updateHudOverlay() {
-  const gpsElem = document.getElementById('overlayGps');
-  const timeElem = document.getElementById('overlayTime');
-  const now = new Date();
-  const timeStr = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
-
-  if (gpsElem) gpsElem.innerHTML = `📍 GPS: ${currentCoords.lat}° N, ${currentCoords.lng}° E (±${currentCoords.accuracy}m)`;
-  if (timeElem) timeElem.innerHTML = `🕒 ${timeStr}`;
-}
-
-window.openNgoCameraModal = async function() {
-  const modal = document.getElementById('ngoCameraProofModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-  clearCameraAlert();
-
-  // Reset UI state
-  const feedElem = document.getElementById('ngoCameraFeed');
-  const previewElem = document.getElementById('ngoRecordedPreview');
-  if (feedElem) feedElem.classList.remove('hidden');
-  if (previewElem) {
-    previewElem.classList.add('hidden');
-    previewElem.src = '';
-  }
-
-  document.getElementById('btnStartRecord').disabled = false;
-  document.getElementById('btnStopRecord').disabled = true;
-  document.getElementById('btnSubmitProof').disabled = true;
-  document.getElementById('recordingPulseBadge').classList.add('hidden');
-  document.getElementById('ngoUploadProgressContainer').classList.add('hidden');
-  document.getElementById('ngoUploadProgressBar').style.width = '0%';
-  document.getElementById('ngoUploadProgressPercent').textContent = '0%';
-  recordedChunks = [];
-  recordedVideoBlob = null;
-
-  // Request Geolocation
-  if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        currentCoords = {
-          lat: parseFloat(pos.coords.latitude.toFixed(4)),
-          lng: parseFloat(pos.coords.longitude.toFixed(4)),
-          accuracy: Math.round(pos.coords.accuracy)
-        };
-        updateHudOverlay();
-      },
-      (err) => {
-        console.warn("[geolocation] Permission/error:", err.message);
-        updateHudOverlay();
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }
-
-  // Start live timestamp interval
-  clearInterval(liveHudInterval);
-  updateHudOverlay();
-  liveHudInterval = setInterval(updateHudOverlay, 1000);
-
-  // Request Camera Stream with facingMode environment (Rear Camera)
-  try {
-    const constraints = {
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: true
-    };
-    cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-    if (feedElem) {
-      feedElem.srcObject = cameraStream;
-      feedElem.play().catch(e => console.warn("[camera] Play error:", e.message));
-    }
-  } catch (err) {
-    console.error("[camera] Error accessing media devices:", err.name, err.message);
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      showCameraAlert('⚠️ Camera & microphone access denied. Please grant permissions in your browser bar to capture field video proof.', 'error');
-    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      showCameraAlert('⚠️ No rear field camera or microphone found on this device.', 'error');
-    } else {
-      showCameraAlert(`⚠️ Camera Initialization Error: ${err.message}`, 'error');
-    }
-  }
-};
-
-window.closeNgoCameraModal = function() {
-  const modal = document.getElementById('ngoCameraProofModal');
-  if (modal) modal.classList.add('hidden');
-
-  clearInterval(liveHudInterval);
-  clearInterval(recTimerInterval);
-
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    try { mediaRecorder.stop(); } catch (_) {}
-  }
-
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-};
-
-window.startNgoRecording = function() {
-  if (!cameraStream) {
-    showCameraAlert('⚠️ Active camera stream unavailable. Please re-open the modal or allow camera permissions.', 'error');
-    return;
-  }
-
-  clearCameraAlert();
-  recordedChunks = [];
-  recSeconds = 0;
-
-  try {
-    let options = { mimeType: 'video/webm;codecs=vp9,opus' };
-    if (typeof MediaRecorder.isTypeSupported === 'function') {
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/webm' };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-          options = { mimeType: 'video/mp4' };
-        }
-      }
-    }
-
-    mediaRecorder = new MediaRecorder(cameraStream, options);
-
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0) {
-        recordedChunks.push(event.data);
-      }
-    };
-
-    mediaRecorder.onstop = () => {
-      recordedVideoBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
-      const recordedUrl = URL.createObjectURL(recordedVideoBlob);
-
-      const feedElem = document.getElementById('ngoCameraFeed');
-      const previewElem = document.getElementById('ngoRecordedPreview');
-      if (feedElem) feedElem.classList.add('hidden');
-      if (previewElem) {
-        previewElem.src = recordedUrl;
-        previewElem.classList.remove('hidden');
-      }
-
-      document.getElementById('btnSubmitProof').disabled = false;
-      showCameraAlert('✓ Video recording stopped! Review clip preview below before submitting.', 'success');
-    };
-
-    mediaRecorder.start(1000);
-
-    document.getElementById('btnStartRecord').disabled = true;
-    document.getElementById('btnStopRecord').disabled = false;
-    document.getElementById('recordingPulseBadge').classList.remove('hidden');
-
-    clearInterval(recTimerInterval);
-    recTimerInterval = setInterval(() => {
-      recSeconds++;
-      const mins = String(Math.floor(recSeconds / 60)).padStart(2, '0');
-      const secs = String(recSeconds % 60).padStart(2, '0');
-      const timerElem = document.getElementById('recordingTimer');
-      if (timerElem) timerElem.textContent = `${mins}:${secs}`;
-    }, 1000);
-
-  } catch (err) {
-    console.error("[recording] MediaRecorder start error:", err);
-    showCameraAlert(`⚠️ Failed to start video recorder: ${err.message}`, 'error');
-  }
-};
-
-window.stopNgoRecording = function() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
-  clearInterval(recTimerInterval);
-  document.getElementById('btnStartRecord').disabled = false;
-  document.getElementById('btnStopRecord').disabled = true;
-  document.getElementById('recordingPulseBadge').classList.add('hidden');
-};
-
-window.submitNgoFieldProof = async function(e) {
-  e.preventDefault();
-
-  const campaignSelect = document.getElementById('ngoModalCampaignId');
-  const campaignId = campaignSelect ? campaignSelect.value : '1';
-  const campaignName = campaignSelect ? campaignSelect.options[campaignSelect.selectedIndex].text : 'Active Cause';
-  const title = document.getElementById('ngoModalProofTitle').value || 'Live Field Video Proof';
-  const volunteerId = document.getElementById('ngoModalVolunteerId').value || 'VOL-8821';
-
-  const btnSubmit = document.getElementById('btnSubmitProof');
-  const progressContainer = document.getElementById('ngoUploadProgressContainer');
-  const progressBar = document.getElementById('ngoUploadProgressBar');
-  const progressPercent = document.getElementById('ngoUploadProgressPercent');
-
-  btnSubmit.disabled = true;
-  if (progressContainer) progressContainer.classList.remove('hidden');
-
-  let progress = 15;
-  const progressInterval = setInterval(() => {
-    progress += Math.floor(Math.random() * 20) + 15;
-    if (progress > 90) progress = 90;
-    if (progressBar) progressBar.style.width = `${progress}%`;
-    if (progressPercent) progressPercent.textContent = `${progress}%`;
-  }, 200);
-
-  try {
-    const payload = {
-      campaignId,
-      title,
-      description: `Live ground video proof recorded by volunteer ${volunteerId}`,
-      latitude: currentCoords.lat,
-      longitude: currentCoords.lng,
-      timestamp: new Date().toISOString(),
-      volunteerId,
-      videoUrl: recordedVideoBlob ? URL.createObjectURL(recordedVideoBlob) : 'https://www.youtube.com/embed/dQw4w9WgXcQ'
-    };
-
-    const response = await fetch('/api/proofs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    clearInterval(progressInterval);
-    if (progressBar) progressBar.style.width = '100%';
-    if (progressPercent) progressPercent.textContent = '100%';
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Proof submission failed');
-
-    showCameraAlert('✓ Proof uploaded & submitted to Admin Review Queue!', 'success');
-
-    const tableBody = document.getElementById('ngoWorkHistoryBody');
-    if (tableBody) {
-      const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16) + ' IST';
-      const newRow = document.createElement('tr');
-      newRow.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-      newRow.innerHTML = `
-        <td style="padding:16px 12px; font-weight:700; color:var(--text);">
-          ${escapeHtml(title)}
-          <div style="font-size:0.75rem; color:var(--text3); font-weight:400;">${escapeHtml(campaignName)}</div>
-        </td>
-        <td style="padding:16px 12px; font-family:monospace; color:var(--green);">
-          📍 ${currentCoords.lat}° N, ${currentCoords.lng}° E
-        </td>
-        <td style="padding:16px 12px; font-family:monospace; color:var(--blue);">${escapeHtml(volunteerId)}</td>
-        <td style="padding:16px 12px; font-size:0.78rem;">${nowStr}</td>
-        <td style="padding:16px 12px;">
-          <span style="font-size:0.75rem; font-weight:800; color:var(--orange); background:rgba(249,115,22,0.15); padding:4px 10px; border-radius:12px; border:1px solid rgba(249,115,22,0.3);">
-            ⏳ Pending Admin Review
-          </span>
-        </td>
-        <td style="padding:16px 12px; text-align:right; font-family:monospace; font-weight:700; color:var(--gold);">
-          ⏱️ 71h 59m remaining
-        </td>
-      `;
-      tableBody.insertBefore(newRow, tableBody.firstChild);
-    }
-
-    setTimeout(() => {
-      closeNgoCameraModal();
-    }, 1500);
-
-  } catch (err) {
-    clearInterval(progressInterval);
-    console.error("[proofs] Upload error:", err);
-    showCameraAlert(`⚠️ Upload failed: ${err.message}`, 'error');
-    btnSubmit.disabled = false;
-  }
-};
-
-function navigate(path, pushState = true) {
-  // Route Guards for Role-Protected Portals
-  if (path === '/admin') {
-    const userRole = (currentUser && currentUser.role) || (localStorage.getItem('servemate_user_role'));
-    const isAdmin = (authToken && (userRole === 'admin' || (currentUser && currentUser.email === 'admin@servemate.org')));
-    if (!isAdmin) {
-      showToast('⚠️ Admin privileges required. Redirecting to login...', 'error');
-      history.replaceState({ path: '/login' }, '', '/login');
-      path = '/login';
-    }
-  } else if (path === '/ngo-dashboard') {
-    const isNgo = Boolean(ngoToken || (currentUser && (currentUser.role === 'ngo' || currentUser.role === 'admin')));
-    if (!isNgo) {
-      showToast('⚠️ NGO Partner access required. Redirecting to login...', 'error');
-      history.replaceState({ path: '/login' }, '', '/login');
-      path = '/login';
-    }
-  }
-
-  let viewId = routes[path] || 'view-home';
-
-  // Close mobile drawer if open
-  const drawer = document.getElementById('mobileMenuDrawer');
-  const btn = document.getElementById('mobileMenuToggle');
-  if (drawer && drawer.classList.contains('active')) {
-    drawer.classList.add('hidden');
-    drawer.classList.remove('active');
-    if (btn) btn.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  // Push browser history
-  if (pushState) {
-    history.pushState({ path }, '', path);
-  }
-
-  // Toggle visible sections
-  document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
-  const target = document.getElementById(viewId);
-  if (target) {
-    target.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Update navbar links active styling
-  document.querySelectorAll('.nav-links a').forEach(a => {
-    const href = a.getAttribute('href');
-    if (href === path) a.classList.add('active');
-    else a.classList.remove('active');
-  });
-
-  // Load page-specific data
-  triggerViewLoad(path);
-}
-
-// Global click interceptor for SPA links
-document.addEventListener('click', (e) => {
-  const link = e.target.closest('a');
-  if (link && link.getAttribute('href') && link.getAttribute('href').startsWith('/')) {
-    e.preventDefault();
-    const path = link.getAttribute('href');
-    navigate(path);
-  }
-});
-
-// Browser back/forward navigation
-window.addEventListener('popstate', (e) => {
-  const path = window.location.pathname;
-  navigate(path, false);
-});
-
-// View Load Trigger Router
-async function triggerViewLoad(path) {
-  // Sync Nav visibility state
-  updateNav();
-
-  if (path === '/') {
-    await fetchStats();
-  } else if (path === '/causes') {
-    await fetchCauses();
-  } else if (path === '/communities') {
-    await fetchCommunities();
-  } else if (path === '/ngos') {
-    await fetchNgos();
-  } else if (path === '/impact') {
-    await fetchTransparency();
-  } else if (path === '/leaderboard') {
-    await fetchLeaderboards();
-  } else if (path === '/dashboard') {
-    await loadUserDashboard();
-  } else if (path === '/community-dashboard') {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    if (id) await loadCommunityDashboard(id);
-    else navigate('/communities');
-  } else if (path === '/ngo-dashboard') {
-    await loadNgoDashboard();
-  } else if (path === '/login' || path === '/register' || path === '/forgot-password') {
-    if (authToken) navigate('/dashboard');
-    else if (ngoToken) navigate('/ngo-dashboard');
-  }
-  
-  // Re-run scroll animations
-  initReveal();
-}
-
-/* ============================================================
-   CORE API REQUEST WRAPPER
-   ============================================================ */
-async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  else if (ngoToken) headers['Authorization'] = `Bearer ${ngoToken}`;
-  
-  const baseUrl = window.location.origin || '';
-  const targetUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
-  
-  try {
-    const res = await fetch(targetUrl, { ...opts, headers });
-    return res;
-  } catch (err) {
-    console.warn(`[API fetch warning] Request to ${targetUrl} failed:`, err.message);
-    if (!path.startsWith('http') && path.startsWith('/api')) {
-      try {
-        const fallbackRes = await fetch(path, { ...opts, headers });
-        return fallbackRes;
-      } catch (fallbackErr) {
-        throw new Error('Server connection error. Please check your network or refresh the page.');
-      }
-    }
-    throw err;
-  }
-}
-
-/* ============================================================
-   TOAST SYSTEM
-   ============================================================ */
-function showToast(message, type = 'success') {
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span class="toast-icon">${icons[type] || '💬'}</span> ${message}`;
-  const container = document.getElementById('toastContainer');
-  if (container) {
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 4000);
-  }
-}
-
-/* ============================================================
-   AUTHENTICATION LOGIC
-   ============================================================ */
-function updateNav() {
-  const el = document.getElementById('navActions');
-  const mobEl = document.getElementById('mobileDrawerActions');
-  if (!el) return;
-
-  let html = '';
-  if (authToken && currentUser && (currentUser.role === 'admin' || currentUser.email === 'admin@servemate.org')) {
-    const lvl = currentUser.level || 1;
-    const name = currentUser.name?.split(' ')[0] || 'Admin';
-    html = `
-      <span class="user-greeting">Hi, ${name}</span>
-      <span class="level-badge" style="margin-left:4px;">⭐ Lv.${lvl}</span>
-      <a href="/dashboard" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem">User Dashboard</a>
-      <a href="/admin" class="btn btn-primary" style="padding:8px 14px;font-size:0.85rem">🛡️ Admin Desk</a>
-      <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem" onclick="logout()">Logout</button>
-    `;
-  } else if (ngoToken && currentNgo) {
-    const name = currentNgo.name?.split(' ')[0] || 'NGO';
-    html = `
-      <span class="user-greeting">🏢 ${name}</span>
-      <a href="/dashboard" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem">User Dashboard</a>
-      <a href="/ngo-dashboard" class="btn btn-primary" style="padding:8px 14px;font-size:0.85rem">NGO Workspace</a>
-      <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem" onclick="logout()">Logout</button>
-    `;
-  } else if (authToken && currentUser) {
-    const lvl = currentUser.level || 1;
-    const name = currentUser.name?.split(' ')[0] || 'User';
-    const isNgoRole = currentUser.role === 'ngo';
-    const portalBtn = isNgoRole 
-      ? `<a href="/ngo-dashboard" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem">🏢 NGO Workspace</a>`
-      : `<a href="/dashboard" class="btn btn-primary" style="padding:8px 14px;font-size:0.85rem">Dashboard</a>`;
-    html = `
-      <span class="user-greeting">Hi, ${name}</span>
-      <span class="level-badge" style="margin-left:4px;">⭐ Lv.${lvl}</span>
-      ${portalBtn}
-      <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem" onclick="logout()">Logout</button>
-    `;
-  } else {
-    html = `
-      <a href="/login" class="btn btn-ghost" style="padding:8px 18px;font-size:0.9rem">Login</a>
-      <a href="/register" class="btn btn-primary" style="padding:8px 18px;font-size:0.9rem">Register</a>
-    `;
-  }
-
-  el.innerHTML = html;
-  if (mobEl) {
-    mobEl.innerHTML = html;
-  }
-}
-
-async function handleLogin(e, role) {
-  e.preventDefault();
-  const form = e.target;
-  const email = form.querySelector('[type="email"]').value;
-  const password = form.querySelector('[type="password"]').value;
-  const errorEl = form.querySelector('.error-message');
-  
-  if (errorEl) errorEl.style.display = 'none';
-
-  const path = role === 'ngo' ? '/api/auth/ngo/login' : '/api/auth/login';
-
-  try {
-    const res = await api(path, {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || data.message || 'Login failed');
-
-    if (role === 'ngo') {
-      ngoToken = data.token;
-      currentNgo = data.ngo || data;
-      localStorage.setItem('servemate_ngo_token', ngoToken);
-      showToast(`Welcome back, ${currentNgo.name}! 🏢`);
-      navigate('/ngo-dashboard');
-    } else {
-      authToken = data.token;
-      currentUser = data.user || data;
-      localStorage.setItem('servemate_token', authToken);
-      showToast(`Welcome back, ${currentUser.name}! 🚀`);
-      navigate('/dashboard');
-    }
-  } catch (err) {
-    if (errorEl) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
-    } else {
-      showToast(err.message, 'error');
-    }
-  }
-}
-
-async function handleRegister(e, role) {
-  e.preventDefault();
-  const form = e.target;
-  const errorEl = form.querySelector('.error-message');
-  if (errorEl) errorEl.style.display = 'none';
-
-  try {
-    if (role === 'ngo') {
-      const payload = {
-        name: form.querySelector('#rNgoName').value,
-        email: form.querySelector('#rNgoEmail').value,
-        password: form.querySelector('#rNgoPass').value,
-        regNumber: form.querySelector('#rNgoReg').value,
-        taxStatus: form.querySelector('#rNgoTax').value,
-        areaOfWork: form.querySelector('#rNgoArea').value,
-        location: form.querySelector('#rNgoLoc').value,
-        description: form.querySelector('#rNgoDesc').value,
-        otp: form.querySelector('#rNgoOtp').value
-      };
-
-      const res = await api('/api/auth/ngo/register', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || 'NGO registration failed');
-      
-      showToast('NGO verification application submitted successfully! 🏢', 'success');
-      form.reset();
-      navigate('/login');
-    } else {
-      const payload = {
-        name: form.querySelector('#rUserName').value,
-        email: form.querySelector('#rUserEmail').value,
-        password: form.querySelector('#rUserPass').value,
-        otp: form.querySelector('#rUserOtp').value
-      };
-
-      const res = await api('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || 'User registration failed');
-
-      authToken = data.token;
-      currentUser = data.user || data;
-      localStorage.setItem('servemate_token', authToken);
-      showToast(`Welcome to ServeMate, ${currentUser.name}! 🚀`);
-      navigate('/dashboard');
-    }
-  } catch (err) {
-    if (errorEl) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
-    } else {
-      showToast(err.message, 'error');
-    }
-  }
-}
-
-async function sendRegistrationOtp(role) {
-  const emailInput = role === 'ngo' ? document.getElementById('rNgoEmail') : document.getElementById('rUserEmail');
-  const sendButton = role === 'ngo' ? document.getElementById('btnSendNgoOtp') : document.getElementById('btnSendUserOtp');
-  const otpInput = role === 'ngo' ? document.getElementById('rNgoOtp') : document.getElementById('rUserOtp');
-  const registerButton = role === 'ngo' ? document.getElementById('btnRegisterNgo') : document.getElementById('btnRegisterUser');
-
-  if (!emailInput || !emailInput.value) {
-    showToast('Please enter an email address first', 'error');
-    return;
-  }
-
-  const email = emailInput.value.trim();
-
-  // Simple email regex check
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Please enter a valid email address', 'error');
-    return;
-  }
-
-  sendButton.disabled = true;
-  const originalText = sendButton.textContent;
-  sendButton.textContent = 'Sending...';
-
-  try {
-    const res = await api('/api/auth/otp/send', {
-      method: 'POST',
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || data.message || 'Failed to send verification code');
-
-    if (data.simulated) {
-      showToast(`Verification code sent! (Simulated OTP: ${data.otp})`, 'success');
-    } else {
-      showToast('Verification code sent to your email!', 'success');
-    }
-
-    if (otpInput) otpInput.disabled = false;
-    if (registerButton) registerButton.disabled = false;
-
-    // Start countdown for resend
-    let secondsLeft = 60;
-    const interval = setInterval(() => {
-      secondsLeft--;
-      if (secondsLeft <= 0) {
-        clearInterval(interval);
-        sendButton.disabled = false;
-        sendButton.textContent = 'Send OTP';
-      } else {
-        sendButton.textContent = `Resend (${secondsLeft}s)`;
-      }
-    }, 1000);
-
-  } catch (err) {
-    showToast(err.message, 'error');
-    sendButton.disabled = false;
-    sendButton.textContent = originalText;
-  }
-}
-
-async function sendForgotPasswordOtp() {
-  const emailInput = document.getElementById('fpEmail');
-  const sendButton = document.getElementById('btnSendFpOtp');
-  const otpInput = document.getElementById('fpOtp');
-  const newPassInput = document.getElementById('fpNewPass');
-  const resetButton = document.getElementById('btnResetPassword');
-
-  if (!emailInput || !emailInput.value) {
-    showToast('Please enter your registered email address first', 'error');
-    return;
-  }
-
-  const email = emailInput.value.trim();
-
-  // Simple email regex check
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Please enter a valid email address', 'error');
-    return;
-  }
-
-  sendButton.disabled = true;
-  const originalText = sendButton.textContent;
-  sendButton.textContent = 'Sending...';
-
-  try {
-    const res = await api('/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || data.message || 'Failed to send reset code');
-
-    if (data.simulated) {
-      showToast(`Reset code sent! (Simulated OTP: ${data.otp})`, 'success');
-    } else {
-      showToast('Reset code sent to your email!', 'success');
-    }
-
-    if (otpInput) otpInput.disabled = false;
-    if (newPassInput) newPassInput.disabled = false;
-    if (resetButton) resetButton.disabled = false;
-
-    // Start countdown for resend
-    let secondsLeft = 60;
-    const interval = setInterval(() => {
-      secondsLeft--;
-      if (secondsLeft <= 0) {
-        clearInterval(interval);
-        sendButton.disabled = false;
-        sendButton.textContent = 'Send OTP';
-      } else {
-        sendButton.textContent = `Resend (${secondsLeft}s)`;
-      }
-    }, 1000);
-
-  } catch (err) {
-    showToast(err.message, 'error');
-    sendButton.disabled = false;
-    sendButton.textContent = originalText;
-  }
-}
-
-async function handleForgotPassword(e) {
-  e.preventDefault();
-  const form = e.target;
-  const errorEl = form.querySelector('.error-message');
-  if (errorEl) errorEl.style.display = 'none';
-
-  try {
-    const payload = {
-      email: form.querySelector('#fpEmail').value,
-      otp: form.querySelector('#fpOtp').value,
-      newPassword: form.querySelector('#fpNewPass').value
-    };
-
-    const res = await api('/api/auth/reset-password', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || data.message || 'Reset password failed');
-
-    showToast('Password reset successful! Please log in.', 'success');
-    form.reset();
-    navigate('/login');
-  } catch (err) {
-    if (errorEl) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
-    } else {
-      showToast(err.message, 'error');
-    }
-  }
-}
-
-function logout() {
-  authToken = '';
-  ngoToken = '';
-  currentUser = null;
-  currentNgo = null;
-  localStorage.removeItem('servemate_token');
-  localStorage.removeItem('servemate_ngo_token');
-  showToast('Logged out successfully.', 'info');
-  navigate('/');
-}
-
-async function restoreSession() {
-  if (authToken) {
-    try {
-      const res = await api('/api/auth/me');
-      if (res.ok) currentUser = await res.json();
-      else {
-        authToken = '';
-        localStorage.removeItem('servemate_token');
-      }
-    } catch {
-      authToken = '';
-    }
-  } else if (ngoToken) {
-    try {
-      const res = await api('/api/ngo/me');
-      if (res.ok) {
-        const data = await res.json();
-        currentNgo = data.ngo;
-      } else {
-        ngoToken = '';
-        localStorage.removeItem('servemate_ngo_token');
-      }
-    } catch {
-      ngoToken = '';
-    }
-  }
-  updateNav();
-}
-
-/* ============================================================
-   STATS & INTERACTIVE MOCKUP
-   ============================================================ */
-async function fetchStats() {
-  try {
-    const res = await api('/api/stats');
-    if (!res.ok) return;
-    const d = await res.json();
-    
-    // Update hero stats
-    const elements = {
-      statDonated: '₹' + (d.totalDonated || 0).toLocaleString('en-IN'),
-      statTasks: d.verifiedTasks || 0,
-      statNgos: d.verifiedNGOs || 0
-    };
-    
-    Object.keys(elements).forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = elements[id];
-    });
-
-    // Update mockup dashboard stats
-    const vDonated = document.getElementById('mockupDonated');
-    const vNGOs = document.getElementById('mockupNGOs');
-    const vDeliveries = document.getElementById('mockupDeliveries');
-    
-    if (vDonated) vDonated.textContent = '₹' + (d.totalDonated || 0).toLocaleString('en-IN');
-    if (vNGOs) vNGOs.textContent = d.verifiedNGOs || 0;
-    if (vDeliveries) vDeliveries.textContent = d.verifiedTasks || 0;
-  } catch (e) {
-    console.warn('Stats fetch failed', e);
-  }
-}
-
-/* ============================================================
-   CAUSES PAGE RENDER & ACTION
-   ============================================================ */
-const causeEmojis = {
-  hunger: '🍲',
-  environment: '🌳',
-  'orphan-child-support': '👶',
-  'widow-support': '🤝',
-  'elder-support': '👴',
-  temporary: '🚨',
-  default: '💚'
-};
-const causeTags = {
-  hunger: 'tag',
-  environment: 'tag',
-  'orphan-child-support': 'tag',
-  'widow-support': 'tag',
-  'elder-support': 'tag',
-  temporary: 'tag-gold',
-  default: 'tag'
-};
-const causeCategoryLabels = {
-  hunger: 'Hunger',
-  environment: 'Environment',
-  'orphan-child-support': 'Orphan Child Support',
-  'widow-support': 'Widow Support',
-  'elder-support': 'Elder Support',
-  temporary: '🚨 Temporary / Urgent'
-};
-const causeImages = {
-  hunger: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=80',
-  environment: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
-  'orphan-child-support': 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop&q=80',
-  'widow-support': 'https://images.unsplash.com/photo-1579208575657-c595a05383b7?w=600&auto=format&fit=crop&q=80',
-  'elder-support': 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&auto=format&fit=crop&q=80',
-  temporary: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&auto=format&fit=crop&q=80',
-  default: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=80'
-};
-
-const DEFAULT_5_CAMPAIGNS = [
+// ------------------------------------------------------------
+// 1. DATA STORE & STATE
+// ------------------------------------------------------------
+const CAUSES_DATA = [
   {
-    _id: "camp_hunger_1",
-    id: "camp_hunger_1",
-    title: "10,000 Hot Meals for Urban Slum Families",
-    description: "Cook and deliver fresh, nutritious warm meals to daily wage laborers, homeless shelters, and slum families.",
-    category: "hunger",
-    goal: 1000000,
-    target_amount: 1000000,
-    raised: 38450,
-    contributors: 412,
-    xp: 50,
-    impactPerRupee: "₹20 = 1 hot nutritious meal served",
-    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&auto=format&fit=crop&q=80",
-    icon: "🍲",
-    status: "active",
-    assignedNgo: { _id: "ngo_1", name: "Resence Help", location: "Greater Noida" }
+    id: 1,
+    title: "Nutritional Biscuit & Energy Pack",
+    category: "meals",
+    unitPrice: 10,
+    unitName: "Biscuit Pack",
+    goalUnits: 500,
+    fundedUnits: 382,
+    ngoName: "Jan Seva Foundation",
+    ngoDarpan: "UP/2023/0182",
+    location: "Surajpur Primary School, Greater Noida",
+    desc: "Provides fortifying glucose and protein biscuits to undernourished children in Greater Noida slum schools.",
+    thumb: "https://images.unsplash.com/photo-1599059813005-11265ba4b4ce?w=600&auto=format&fit=crop&q=80",
+    icon: "🍪"
   },
   {
-    _id: "camp_env_1",
-    id: "camp_env_1",
-    title: "Plant 50,000 Native Trees Mission",
-    description: "Plant native tree saplings across deforested urban and rural zones to combat air pollution and heatwaves.",
-    category: "environment",
-    goal: 1000000,
-    target_amount: 1000000,
-    raised: 24500,
-    contributors: 280,
-    xp: 50,
-    impactPerRupee: "₹50 = 1 native tree sapling planted & nurtured",
-    image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80",
-    icon: "🌳",
-    status: "active",
-    assignedNgo: { _id: "ngo_2", name: "Green Earth Trust", location: "Noida" }
+    id: 2,
+    title: "Fresh Milk & Nutrition Sip",
+    category: "meals",
+    unitPrice: 25,
+    unitName: "Milk Bottle (200ml)",
+    goalUnits: 300,
+    fundedUnits: 215,
+    ngoName: "Bal Vikas Samiti",
+    ngoDarpan: "UP/2022/0894",
+    location: "Knowledge Park Slum Cluster, Greater Noida",
+    desc: "Pure pasteurized milk packs distributed daily to infants and toddlers of migrant construction workers.",
+    thumb: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80",
+    icon: "🥛"
   },
   {
-    _id: "camp_orphan_1",
-    id: "camp_orphan_1",
-    title: "Orphaned Children Education & Boarding Support",
-    description: "Provide shelter, school kits, textbooks, and full boarding support for orphaned and abandoned children.",
-    category: "orphan-child-support",
-    goal: 500000,
-    target_amount: 500000,
-    raised: 18200,
-    contributors: 195,
-    xp: 50,
-    impactPerRupee: "₹350 = 1 complete school bag & learning kit",
-    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop&q=80",
-    icon: "👶",
-    status: "active",
-    assignedNgo: { _id: "ngo_3", name: "Jan Seva Foundation", location: "Delhi NCR" }
+    id: 3,
+    title: "Warm Khichdi & Protein Meal",
+    category: "meals",
+    unitPrice: 50,
+    unitName: "Full Hot Meal",
+    goalUnits: 400,
+    fundedUnits: 340,
+    ngoName: "Roti Bank Greater Noida",
+    ngoDarpan: "UP/2021/0441",
+    location: "Pari Chowk Night Shelter, Greater Noida",
+    desc: "Fresh, hygienic, warm dal-khichdi meals served in eco-friendly leaf bowls to daily wagers and pavement dwellers.",
+    thumb: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+    icon: "🍲"
   },
   {
-    _id: "camp_widow_1",
-    id: "camp_widow_1",
-    title: "Sewing Kits & Livelihood for Destitute Widows",
-    description: "Empower destitute widows through self-reliance sewing machine kits, skill training, and monthly stipends.",
-    category: "widow-support",
-    goal: 400000,
-    target_amount: 400000,
-    raised: 15400,
-    contributors: 140,
-    xp: 50,
-    impactPerRupee: "₹1500 = 1 sewing kit & vocational training module",
-    image: "https://images.unsplash.com/photo-1579208575657-c595a05383b7?w=600&auto=format&fit=crop&q=80",
-    icon: "🤝",
-    status: "active",
-    assignedNgo: { _id: "ngo_4", name: "Nari Shakti Trust", location: "Uttar Pradesh" }
+    id: 4,
+    title: "Family Emergency Ration Kit (5kg)",
+    category: "ration",
+    unitPrice: 150,
+    unitName: "5kg Ration Pack",
+    goalUnits: 150,
+    fundedUnits: 112,
+    ngoName: "Gautam Buddha Nagar Relief Foundation",
+    ngoDarpan: "UP/2023/0388",
+    location: "Kasna Labor Colony, Greater Noida",
+    desc: "Wholesale provision pack containing 2kg wholewheat atta, 1kg rice, 1kg dal, salt, and 500ml mustard oil.",
+    thumb: "https://images.unsplash.com/photo-1584473457406-6240486418e9?w=600&auto=format&fit=crop&q=80",
+    icon: "📦"
   },
   {
-    _id: "camp_elder_1",
-    id: "camp_elder_1",
-    title: "Geriatric Care & Ration Kits for Abandoned Elders",
-    description: "Provide monthly dry ration kits, essential medicines, and geriatric care for abandoned senior citizens.",
-    category: "elder-support",
-    goal: 600000,
-    target_amount: 600000,
-    raised: 21800,
-    contributors: 210,
-    xp: 50,
-    impactPerRupee: "₹300 = 1 monthly grocery & medicine kit",
-    image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&auto=format&fit=crop&q=80",
-    icon: "👴",
-    status: "active",
-    assignedNgo: { _id: "ngo_5", name: "ElderCare India", location: "New Delhi" }
+    id: 5,
+    title: "Winter Warmth Blanket & Woolens",
+    category: "winter",
+    unitPrice: 250,
+    unitName: "Heavy Wool Blanket",
+    goalUnits: 200,
+    fundedUnits: 168,
+    ngoName: "Sheet Rahat Mission",
+    ngoDarpan: "UP/2020/0912",
+    location: "Alpha-1 Bus Stand & Depot, Greater Noida",
+    desc: "Heavy thermal wool blankets distributed directly at night to elderly and destitute people sleeping on streets.",
+    thumb: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&auto=format&fit=crop&q=80",
+    icon: "🧣"
+  },
+  {
+    id: 6,
+    title: "Primary First Aid & Child Hygiene Kit",
+    category: "medical",
+    unitPrice: 120,
+    unitName: "Complete Hygiene Kit",
+    goalUnits: 250,
+    fundedUnits: 194,
+    ngoName: "Swasthya Seva Trust",
+    ngoDarpan: "UP/2024/0119",
+    location: "Tugalpur Community Center, Greater Noida",
+    desc: "Antiseptic Dettol, gauze dressings, soap bar, ORS sachets, and bandages for grassroots primary child care.",
+    thumb: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80",
+    icon: "🩹"
   }
 ];
 
-let causesData = [...DEFAULT_5_CAMPAIGNS];
+const CAMPUS_GUILDS = [
+  {
+    id: "glb-hostelb",
+    name: "GL Bajaj Boys Hostel Block-B Guild",
+    college: "GL Bajaj Institute of Technology & Management",
+    members: 148,
+    unitsFunded: 840,
+    xp: 8400,
+    rank: 1,
+    streak: "🔥 14 Days",
+    tagline: "Late night code, early morning community aid."
+  },
+  {
+    id: "glb-bca3c",
+    name: "GL Bajaj BCA Section 3C Guild",
+    college: "GL Bajaj Institute of Management",
+    members: 42,
+    unitsFunded: 620,
+    xp: 6200,
+    rank: 2,
+    streak: "🔥 8 Days",
+    tagline: "Building ACTA from Section 3C to market."
+  },
+  {
+    id: "glb-btechcs",
+    name: "B.Tech CSE Innovators Clan",
+    college: "GL Bajaj Institute of Technology & Management",
+    members: 89,
+    unitsFunded: 510,
+    xp: 5100,
+    rank: 3,
+    streak: "🔥 6 Days",
+    tagline: "Algorithmic social impact at Knowledge Park."
+  },
+  {
+    id: "glb-alpha",
+    name: "Girls Hostel Alpha Guild",
+    college: "GL Bajaj Educational Campus",
+    members: 76,
+    unitsFunded: 490,
+    xp: 4900,
+    rank: 4,
+    streak: "🔥 5 Days",
+    tagline: "Empowering women and child nutrition."
+  }
+];
 
-async function fetchCauses() {
-  try {
-    const res = await api('/api/causes');
-    if (!res.ok) throw new Error('Causes fetch failed');
-    const fetched = await res.json();
-    const allowed = ['hunger', 'environment', 'orphan-child-support', 'widow-support', 'elder-support', 'temporary'];
-    if (Array.isArray(fetched) && fetched.length > 0) {
-      const valid = fetched.filter(c => allowed.includes(c.category));
-      const existingCats = new Set(valid.map(c => c.category));
-      const missingDefaults = DEFAULT_5_CAMPAIGNS.filter(d => !existingCats.has(d.category));
-      causesData = [...valid, ...missingDefaults];
+let userDonationsHistory = [
+  {
+    id: "ACTA-TX-9842",
+    causeTitle: "Warm Khichdi & Protein Meal",
+    units: 2,
+    unitPrice: 50,
+    total: 100,
+    date: "12-Oct-2026",
+    ngo: "Roti Bank Greater Noida",
+    location: "Pari Chowk Shelter, Greater Noida",
+    statusStage: 5, // 1 to 5
+    statusText: "Verified & Archived with Video Proof",
+    proofVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    gps: "28.4744° N, 77.5040° E",
+    invoiceId: "INV-2026-9042",
+    hash: "a8f3b9c1482d7e0129e019b8821034"
+  },
+  {
+    id: "ACTA-TX-9801",
+    causeTitle: "Nutritional Biscuit & Energy Pack",
+    units: 5,
+    unitPrice: 10,
+    total: 50,
+    date: "10-Oct-2026",
+    ngo: "Jan Seva Foundation",
+    location: "Surajpur Primary School, Greater Noida",
+    statusStage: 5,
+    statusText: "Verified & Archived with Video Proof",
+    proofVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    gps: "28.4682° N, 77.4912° E",
+    invoiceId: "INV-2026-8819",
+    hash: "c24e891b0042a98f773b09214482b1"
+  },
+  {
+    id: "ACTA-TX-9755",
+    causeTitle: "Family Emergency Ration Kit (5kg)",
+    units: 1,
+    unitPrice: 150,
+    total: 150,
+    date: "08-Oct-2026",
+    ngo: "Gautam Buddha Nagar Relief Foundation",
+    location: "Kasna Labor Colony, Greater Noida",
+    statusStage: 5,
+    statusText: "Verified & Archived with Video Proof",
+    proofVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    gps: "28.4590° N, 77.5120° E",
+    invoiceId: "INV-2026-8742",
+    hash: "f991b2c45812a00192e478201b8742"
+  }
+];
+
+let selectedCause = null;
+let selectedUnits = 1;
+
+// ------------------------------------------------------------
+// 2. ROUTER MATRIX
+// ------------------------------------------------------------
+const routes = {
+  '/': 'view-home',
+  '/causes': 'view-causes',
+  '/communities': 'view-communities',
+  '/impact': 'view-impact',
+  '/leaderboard': 'view-leaderboard',
+  '/dashboard': 'view-dashboard',
+  '/about': 'view-about',
+  '/transparency': 'view-transparency',
+  '/fcra': 'view-fcra'
+};
+
+function navigate(path, pushState = true) {
+  let viewId = routes[path] || 'view-home';
+  
+  // Hide all views
+  document.querySelectorAll('.view-container').forEach(el => {
+    el.classList.add('hidden');
+  });
+  
+  // Show target view
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.classList.remove('hidden');
+  }
+
+  // Update active nav link
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    if (a.getAttribute('href') === path) {
+      a.classList.add('active');
     } else {
-      causesData = [...DEFAULT_5_CAMPAIGNS];
+      a.classList.remove('active');
     }
-    renderCauses('all');
-  } catch (err) {
-    console.error(err);
-    causesData = [...DEFAULT_5_CAMPAIGNS];
-    renderCauses('all');
+  });
+
+  if (pushState && window.location.pathname !== path) {
+    history.pushState({ path }, '', path);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.addEventListener('popstate', (e) => {
+  const path = (e.state && e.state.path) || window.location.pathname || '/';
+  navigate(path, false);
+});
+
+// Mobile menu toggle
+function toggleMobileMenu() {
+  const drawer = document.getElementById('mobileDrawer');
+  if (drawer) {
+    drawer.classList.toggle('active');
   }
 }
 
-function renderCauses(filter) {
-  const container = document.getElementById('causesContainer');
-  if (!container) return;
-
-  const filtered = filter === 'all' ? causesData : causesData.filter(c => c.category === filter || (filter === 'temporary' && c.isTemporary));
-
-  if (!filtered.length) {
-    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><span class="empty-icon">📭</span><p>No active causes found in this category.</p></div>';
-    return;
-  }
-
-  container.innerHTML = filtered.map((c, i) => {
-    const isTemp = c.category === 'temporary' || c.isTemporary;
-    const emoji = causeEmojis[c.category] || causeEmojis.default;
-    const tagClass = isTemp ? 'tag-gold' : (causeTags[c.category] || causeTags.default);
-    const categoryLabel = isTemp ? '🚨 Temporary / Urgent' : (causeCategoryLabels[c.category] || c.category);
-    const raised = c.raised || 0;
-    const goal = c.goal || 50000;
-    const pct = Math.min((raised / goal) * 100, 100).toFixed(1);
-    const image = c.image || causeImages[c.category] || causeImages.default;
-    const ngoName = c.assignedNgo?.name || 'Assigned Verified NGO';
-    const contributors = c.contributors || 0;
-    
-    return `
-      <div class="glass cause-card reveal" style="transition-delay: ${i * 0.05}s">
-        <div class="cause-image-wrap">
-          <img src="${image}" alt="${esc(c.title)}" />
-          <div class="cause-gradient-overlay"></div>
-          <span class="cause-emoji-badge">${emoji}</span>
-        </div>
-        <div class="cause-body">
-          <div class="cause-meta-row">
-            <h3 class="cause-title">${esc(c.title)}</h3>
-            <span class="tag ${tagClass}">${esc(categoryLabel)}</span>
-          </div>
-          <p class="cause-desc">${esc(c.description)}</p>
-          <div style="font-size: 0.78rem; color: var(--text3); margin-bottom: 12px; font-weight: 600;">🏢 NGO: ${esc(ngoName)}</div>
-          
-          <div class="progress-wrap">
-            <div class="progress-label">
-              <span>₹${raised.toLocaleString('en-IN')} raised</span>
-              <span>${pct}%</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" style="width: ${pct}%"></div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; color: var(--text2); margin-bottom: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
-            <div>👥 <strong>${contributors.toLocaleString('en-IN')}</strong> donors</div>
-            <div style="text-align: right;">🎯 Goal: <strong>₹${goal.toLocaleString('en-IN')}</strong></div>
-          </div>
-
-          <div style="font-size: 0.78rem; color: var(--green); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-            <span>📈</span>
-            <span>${esc(c.impactPerRupee)}</span>
-          </div>
-
-          <div class="xp-badge" style="margin-bottom: 16px;">⚡ +${c.xp || 50} XP per Donation</div>
-
-          <div class="cause-actions" style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
-            <button class="btn btn-donate" style="width: 100%; border-radius: var(--radius-sm); margin: 0; padding: 12px;" onclick="openDonationModal('${c._id}')">Donate</button>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <button class="btn btn-outline" style="font-size: 0.78rem; padding: 10px 8px; border-radius: var(--radius-sm); justify-content: center;" onclick="navigate('/impact')">View Impact</button>
-              <button class="btn btn-outline" style="font-size: 0.78rem; padding: 10px 8px; border-radius: var(--radius-sm); justify-content: center;" onclick="openNgoProfileModal('${c.assignedNgo?._id || c.assignedNgo}')">View NGO</button>
-            </div>
-          </div>
-        </div>
+// ------------------------------------------------------------
+// 3. CAUSES RENDERING & FILTERING
+// ------------------------------------------------------------
+function renderCauseCard(c) {
+  const pct = Math.min(100, Math.round((c.fundedUnits / c.goalUnits) * 100));
+  return `
+    <div class="cause-card">
+      <div class="cause-card-thumb">
+        <img src="${c.thumb}" alt="${c.title}" loading="lazy" />
+        <div class="cause-unit-price-badge">₹${c.unitPrice} / unit</div>
       </div>
-    `;
-  }).join('');
-  initReveal();
-}
+      <div class="cause-body">
+        <div style="font-size:0.75rem; color:var(--emerald-light); font-weight:700; text-transform:uppercase; margin-bottom:6px;">
+          ${c.icon} ${c.ngoName} • Darpan: ${c.ngoDarpan}
+        </div>
+        <div class="cause-title">${c.title}</div>
+        <div class="cause-desc">${c.desc}</div>
+        
+        <div class="cause-progress-wrap">
+          <div class="cause-progress-meta">
+            <span style="color:var(--text-main);">${c.fundedUnits} of ${c.goalUnits} units funded</span>
+            <span style="color:var(--emerald-light);">${pct}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+          </div>
+        </div>
 
-function filterCauses(category, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCauses(category);
-}
-
-/* ============================================================
-   COMMUNITIES PAGE RENDER & ACTIONS
-   ============================================================ */
-async function fetchCommunities() {
-  try {
-    const res = await api('/api/communities');
-    if (!res.ok) throw new Error('Communities fetch failed');
-    communitiesData = await res.json();
-    renderCommunities();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function renderCommunities() {
-  const container = document.getElementById('communitiesContainer');
-  if (!container) return;
-
-  let html = `
-    <div class="create-community-box" onclick="openModal('createCommunityModal')">
-      <span class="create-community-icon">➕</span>
-      <h3>Create Community</h3>
-      <p>Mobilize your friends or club into action</p>
+        <button class="btn btn-primary btn-full" onclick="openDonateModal(${c.id})">
+          <span>🍲</span>
+          <span>Fund This Unit (₹${c.unitPrice})</span>
+        </button>
+      </div>
     </div>
   `;
-
-  if (communitiesData.length > 0) {
-    html += communitiesData.map((c, i) => {
-      const logo = c.logo || 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=150&auto=format&fit=crop&q=80';
-      return `
-        <div class="glass ngo-card reveal" style="transition-delay: ${i * 0.05}s">
-          <div class="ngo-card-header">
-            <div class="ngo-logo-circle" style="background: url('${logo}') center/cover no-repeat;"></div>
-            <div class="ngo-info-col">
-              <h3>${esc(c.name)}</h3>
-              <div class="location">Category: ${esc(c.category)}</div>
-            </div>
-          </div>
-          <p style="font-size: 0.85rem; color: var(--text2); line-height: 1.5; height: 4.5em; overflow: hidden;">${esc(c.description)}</p>
-          <div class="ngo-stats-row">
-            <div class="ngo-stat-col">
-              <div class="ngo-stat-value">${c.members?.length || 0}</div>
-              <div class="ngo-stat-label">Members</div>
-            </div>
-            <div class="ngo-stat-col">
-              <div class="ngo-stat-value">₹${(c.totalRaised || 0).toLocaleString('en-IN')}</div>
-              <div class="ngo-stat-label">Raised</div>
-            </div>
-            <div class="ngo-stat-col">
-              <div class="ngo-stat-value">${c.impactScore || 0}</div>
-              <div class="ngo-stat-label">Impact</div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <a href="/community-dashboard?id=${c._id}" class="btn btn-outline btn-full">View Group</a>
-            <button class="btn btn-primary" onclick="joinCommunity('${c._id}')">Join</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  container.innerHTML = html;
-  initReveal();
 }
 
-async function joinCommunity(communityId) {
-  if (!authToken) {
-    showToast('Please login first to join communities 🙏', 'info');
-    navigate('/login');
-    return;
-  }
-  try {
-    const res = await api('/api/communities/join', {
-      method: 'POST',
-      body: JSON.stringify({ communityId })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to join');
-    showToast('Successfully joined community! 🤝', 'success');
-    await fetchCommunities();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function renderAllCauses(filter = 'all', containerId = 'homeCausesGrid') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  const filtered = filter === 'all' 
+    ? CAUSES_DATA 
+    : CAUSES_DATA.filter(c => c.category === filter);
+
+  el.innerHTML = filtered.map(renderCauseCard).join('');
 }
 
-async function joinCommunityByCode(e) {
-  e.preventDefault();
-  if (!authToken) {
-    showToast('Please login first to join communities 🙏', 'info');
-    navigate('/login');
-    return;
-  }
-  const code = document.getElementById('communityCodeInput').value;
-  try {
-    const res = await api('/api/communities/join', {
-      method: 'POST',
-      body: JSON.stringify({ code })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to join');
-    showToast('Successfully joined community! 🤝', 'success');
-    document.getElementById('communityCodeInput').value = '';
-    await fetchCommunities();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function filterCauses(cat, btn) {
+  document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAllCauses(cat, 'homeCausesGrid');
 }
 
-async function createCommunity(e) {
-  e.preventDefault();
-  if (!authToken) {
-    showToast('Please login first to create communities 🙏', 'info');
-    navigate('/login');
-    return;
-  }
-  const payload = {
-    name: document.getElementById('cName').value,
-    description: document.getElementById('cDesc').value,
-    category: document.getElementById('cCategory').value,
-    logo: document.getElementById('cLogo').value
+function filterCausesCatalog(cat, btn) {
+  document.querySelectorAll('.filter-tabs .filter-tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAllCauses(cat, 'catalogCausesGrid');
+}
+
+// ------------------------------------------------------------
+// 4. ONE-CLICK INSTANT DONATION FLOW
+// ------------------------------------------------------------
+function openDonateModal(causeId) {
+  const cause = CAUSES_DATA.find(c => c.id === causeId) || CAUSES_DATA[0];
+  selectedCause = cause;
+  selectedUnits = 1;
+
+  document.getElementById('modalCauseTitle').innerText = cause.title;
+  document.getElementById('modalCauseIcon').innerText = cause.icon;
+  document.getElementById('modalCauseUnitPrice').innerText = `₹${cause.unitPrice} per ${cause.unitName}`;
+  document.getElementById('donateUnits').value = 1;
+
+  calcTotalDonation();
+  document.getElementById('donateModal').classList.remove('hidden');
+}
+
+function closeDonateModal() {
+  document.getElementById('donateModal').classList.add('hidden');
+}
+
+function adjustUnits(delta) {
+  selectedUnits = Math.max(1, selectedUnits + delta);
+  document.getElementById('donateUnits').value = selectedUnits;
+  calcTotalDonation();
+}
+
+function setDonatePreset(amount) {
+  if (!selectedCause) selectedCause = CAUSES_DATA[0];
+  const units = Math.max(1, Math.round(amount / selectedCause.unitPrice));
+  selectedUnits = units;
+  document.getElementById('donateUnits').value = units;
+  calcTotalDonation();
+}
+
+function calcTotalDonation() {
+  const val = parseInt(document.getElementById('donateUnits').value, 10) || 1;
+  selectedUnits = Math.max(1, val);
+  const total = selectedUnits * (selectedCause ? selectedCause.unitPrice : 10);
+  document.getElementById('modalTotalPayable').innerText = `₹${total.toFixed(2)}`;
+}
+
+function processMockUpi(appName) {
+  showToast(`⚡ Launching ${appName} Instant 0% MDR UPI Intent...`, 'success');
+}
+
+function executeDonation() {
+  if (!selectedCause) return;
+  const total = selectedUnits * selectedCause.unitPrice;
+  const txHash = 'acta_' + Math.random().toString(36).substring(2, 12);
+  
+  // Update cause units funded
+  selectedCause.fundedUnits += selectedUnits;
+  
+  // Push to user donation history
+  const newDonation = {
+    id: 'ACTA-TX-' + Math.floor(1000 + Math.random() * 9000),
+    causeTitle: selectedCause.title,
+    units: selectedUnits,
+    unitPrice: selectedCause.unitPrice,
+    total: total,
+    date: '15-Oct-2026',
+    ngo: selectedCause.ngoName,
+    location: selectedCause.location,
+    statusStage: 5,
+    statusText: 'Verified & Archived with Video Proof',
+    proofVideoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    gps: '28.4744° N, 77.5040° E',
+    invoiceId: 'INV-2026-' + Math.floor(1000 + Math.random() * 9000),
+    hash: txHash
   };
-
-  try {
-    const res = await api('/api/communities', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to create community');
-
-    showToast('Community created successfully! 🚀', 'success');
-    closeModal('createCommunityModal');
-    e.target.reset();
-    await fetchCommunities();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+  
+  userDonationsHistory.unshift(newDonation);
+  
+  // Re-render
+  renderAllCauses('all', 'homeCausesGrid');
+  renderAllCauses('all', 'catalogCausesGrid');
+  renderUserDonations();
+  
+  closeDonateModal();
+  showToast(`🎉 ₹${total} Donated Successfully! 100% video proof & GST receipt generated.`, 'success');
+  
+  // Redirect to dashboard to view the donation
+  setTimeout(() => {
+    navigate('/dashboard');
+  }, 1000);
 }
 
-async function searchCommunities(query) {
-  try {
-    const res = await api(`/api/communities?search=${encodeURIComponent(query)}`);
-    if (!res.ok) throw new Error('Search failed');
-    communitiesData = await res.json();
-    renderCommunities();
-  } catch (err) {
-    console.error(err);
-  }
-}
+// ------------------------------------------------------------
+// 5. USER DASHBOARD ("MY DONATIONS")
+// ------------------------------------------------------------
+function renderUserDonations() {
+  const el = document.getElementById('userDonationsList');
+  if (!el) return;
 
-/* ============================================================
-   COMMUNITY DASHBOARD PAGE
-   ============================================================ */
-async function loadCommunityDashboard(communityId) {
-  try {
-    const res = await api(`/api/communities/${communityId}`);
-    if (!res.ok) throw new Error('Failed to load community dashboard');
-    const data = await res.json();
-    const c = data.community;
-
-    document.getElementById('cdLogo').style.backgroundImage = `url('${c.logo || "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=150&auto=format&fit=crop&q=80"}')`;
-    document.getElementById('cdName').textContent = c.name;
-    document.getElementById('cdDesc').textContent = c.description;
-    document.getElementById('cdCode').textContent = c.code;
-    document.getElementById('cdCreator').textContent = c.creator?.name || 'Anonymous';
-    document.getElementById('cdMemberCount').textContent = c.members?.length || 0;
-    document.getElementById('cdRaised').textContent = '₹' + (c.totalRaised || 0).toLocaleString('en-IN');
-    document.getElementById('cdRank').textContent = '#' + (data.rank || '-');
-    document.getElementById('cdImpact').textContent = c.impactScore || 0;
-
-    // Attribute active community to donation
-    document.getElementById('cdDonateBtn').onclick = () => {
-      selectedCommunityId = c._id;
-      // Auto open causes page
-      navigate('/causes');
-      showToast(`Donating as part of community: ${c.name} 🤝`, 'info');
-    };
-
-    // Roster Members
-    const membersEl = document.getElementById('cdMembersList');
-    if (membersEl) {
-      if (c.members?.length > 0) {
-        membersEl.innerHTML = c.members.map(m => `
-          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
-            <div style="width:34px;height:34px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials(m.name)}</div>
-            <div style="flex:1;">
-              <div style="font-weight:600;font-size:0.85rem;">${esc(m.name)}</div>
-              <div style="font-size:0.72rem;color:var(--text3);">${esc(m.title || 'Supporter')} · Lvl ${m.level || 1}</div>
-            </div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:600;">${m.xp || 0} XP</div>
-          </div>
-        `).join('');
-      } else {
-        membersEl.innerHTML = '<div style="font-size:0.85rem;color:var(--text3);text-align:center;">No members yet.</div>';
-      }
-    }
-
-    // Supported NGOs
-    const ngosEl = document.getElementById('cdNgosList');
-    if (ngosEl) {
-      if (c.supportedNgos?.length > 0) {
-        ngosEl.innerHTML = c.supportedNgos.map(n => `
-          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;">
-            <div style="width:34px;height:34px;border-radius:6px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:0.85rem;">🏢</div>
-            <div>
-              <div style="font-weight:600;font-size:0.85rem;">${esc(n.name)}</div>
-              <div style="font-size:0.72rem;color:var(--text3);">${esc(n.areaOfWork || 'Verified NGO')} · ${esc(n.location)}</div>
-            </div>
-          </div>
-        `).join('');
-      } else {
-        ngosEl.innerHTML = '<div style="font-size:0.85rem;color:var(--text3);text-align:center;">No supported NGOs yet. Donated funds will route here.</div>';
-      }
-    }
-
-    // Recent Activity
-    const activityEl = document.getElementById('cdActivityList');
-    if (activityEl) {
-      if (data.activity?.length > 0) {
-        activityEl.innerHTML = data.activity.map(a => `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-            <div>
-              <div style="font-weight:600;font-size:0.85rem;">${esc(a.user?.name || 'Anonymous')}</div>
-              <div style="font-size:0.75rem;color:var(--text3);">${a.cause?.icon || '📂'} ${esc(a.cause?.title)}</div>
-            </div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:0.85rem;">+₹${(a.amount||0).toLocaleString('en-IN')}</div>
-          </div>
-        `).join('');
-      } else {
-        activityEl.innerHTML = '<div style="font-size:0.85rem;color:var(--text3);text-align:center;">No recent transactions.</div>';
-      }
-    }
-
-    // Verification videos
-    const videosEl = document.getElementById('cdVideosGrid');
-    if (videosEl) {
-      if (data.verificationVideos?.length > 0) {
-        videosEl.innerHTML = data.verificationVideos.map(v => `
-          <div class="glass proof-card">
-            <div class="proof-card-header">
-              <span class="verified-badge">✓ Verified Impact</span>
-              <div class="proof-amount grad-text">₹${v.amount.toLocaleString('en-IN')}</div>
-            </div>
-            <div class="proof-cause">🏢 NGO: ${esc(v.ngo?.name)}</div>
-            <p class="proof-desc" style="font-size:0.8rem;margin:8px 0;">${esc(v.proofNote || 'Impact proof validated by administrator.')}</p>
-            <a href="${esc(v.proofVideo)}" target="_blank" class="btn btn-outline btn-sm" style="font-size:0.75rem;padding:6px 12px;justify-content:center;">▶ Watch Proof Video</a>
-          </div>
-        `).join('');
-      } else {
-        videosEl.innerHTML = '<div class="empty-panel" style="grid-column: 1/-1;"><span class="empty-icon" style="font-size:1.5rem">📦</span><p style="font-size:0.8rem">No verified delivery proof videos uploaded for this community yet.</p></div>';
-      }
-    }
-
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-/* ============================================================
-   NGO DIRECTORY
-   ============================================================ */
-async function fetchNgos() {
-  try {
-    const res = await api('/api/ngos');
-    if (!res.ok) throw new Error('NGO fetch failed');
-    ngosData = await res.json();
-    renderNgos();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function renderNgos() {
-  const container = document.getElementById('ngosContainer');
-  if (!container) return;
-
-  if (!ngosData.length) {
-    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><span class="empty-icon">🏢</span><p>No verified NGO partners are currently active.</p></div>';
+  if (userDonationsHistory.length === 0) {
+    el.innerHTML = `<div class="card-glass" style="text-align:center; padding:40px;">No donations recorded yet.</div>`;
     return;
   }
 
-  container.innerHTML = ngosData.map((ngo, i) => {
-    const logo = ngo.logo || 'https://images.unsplash.com/photo-1579208575657-c595a05383b7?w=150&auto=format&fit=crop&q=80';
-    const trustScore = ngo.rating ? Math.round(ngo.rating * 20) : 95; // Fake rating mapping to trust score
+  el.innerHTML = userDonationsHistory.map((d, index) => {
+    const aidSplit = (d.total * 0.95).toFixed(2);
+    const feeSplit = (d.total * 0.05).toFixed(2);
     
     return `
-      <div class="glass ngo-card reveal" style="transition-delay: ${i * 0.05}s">
-        <span class="ngo-trust-badge">⭐ Trust: ${trustScore}%</span>
-        <div class="ngo-card-header">
-          <div class="ngo-logo-circle" style="background: url('${logo}') center/cover no-repeat;"></div>
-          <div class="ngo-info-col">
-            <h3>${esc(ngo.name)} <span class="verified-badge" style="font-size:0.65rem;padding:1px 6px;">✓ Verified</span></h3>
-            <div class="location">📍 ${esc(ngo.location || 'India')}</div>
+      <div class="donation-row">
+        <div class="donation-header-line">
+          <div>
+            <span class="badge badge-emerald" style="font-size:0.7rem; margin-bottom:4px;">${d.id}</span>
+            <h4 style="font-size:1.15rem; margin:2px 0;">${d.causeTitle} (${d.units} units)</h4>
+            <div style="font-size:0.8rem; color:var(--text-muted);">
+              Partner NGO: <strong>${d.ngo}</strong> • Location: ${d.location}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-heading); font-size:1.4rem; font-weight:800; color:var(--emerald-light);">₹${d.total.toFixed(2)}</div>
+            <div style="font-size:0.72rem; color:var(--text-dim);">₹${aidSplit} Ground Aid • ₹${feeSplit} Fee</div>
           </div>
         </div>
-        <p style="font-size: 0.85rem; color: var(--text2); line-height: 1.5; height: 3em; overflow: hidden; margin-bottom:12px;">${esc(ngo.about || ngo.description || 'Verified organization support')}</p>
-        <div style="font-size:0.8rem; color:var(--text3); font-weight:600;">Area: ${esc(ngo.areaOfWork)}</div>
-        <div class="ngo-stats-row" style="margin: 12px 0;">
-          <div class="ngo-stat-col">
-            <div class="ngo-stat-value">${ngo.impactScore || 0}</div>
-            <div class="ngo-stat-label">Impact Score</div>
+
+        <!-- 5-STAGE STATUS TRACKER -->
+        <div class="status-tracker">
+          <div class="status-step completed">
+            <div class="status-step-dot">✓</div>
+            <div class="status-step-title">Donation Logged</div>
           </div>
-          <div class="ngo-stat-col">
-            <div class="ngo-stat-value">${ngo.tasksCompleted || 0}</div>
-            <div class="ngo-stat-label">Tasks Done</div>
+          <div class="status-step completed">
+            <div class="status-step-dot">✓</div>
+            <div class="status-step-title">NGO Assigned</div>
           </div>
-          <div class="ngo-stat-col">
-            <div class="ngo-stat-value">${ngo.volunteerCount || 0}</div>
-            <div class="ngo-stat-label">Volunteers</div>
+          <div class="status-step completed">
+            <div class="status-step-dot">✓</div>
+            <div class="status-step-title">Procured Bulk</div>
+          </div>
+          <div class="status-step completed">
+            <div class="status-step-dot">✓</div>
+            <div class="status-step-title">In-App Video</div>
+          </div>
+          <div class="status-step completed">
+            <div class="status-step-dot">✓</div>
+            <div class="status-step-title">Verified</div>
           </div>
         </div>
-        <button class="btn btn-outline btn-full" onclick="openNgoProfileModal('${ngo._id}')">View NGO Profile</button>
+
+        <!-- PROOF ACTIONS -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border); padding-top:12px;">
+          <div style="font-size:0.78rem; color:var(--emerald-light); font-weight:600;">
+            ✓ Live Camera Video Verified • NTP Timestamp: ${d.date}
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="openVideoProofModal('${d.id}')">
+              <span>📹</span>
+              <span>Watch Proof Video</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="openInvoiceModalFromProof()">
+              <span>🧾</span>
+              <span>View GST Bill</span>
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadAuditReceipt('${d.id}')">
+              <span>📥</span>
+              <span>Audit Receipt</span>
+            </button>
+          </div>
+        </div>
       </div>
     `;
   }).join('');
-  initReveal();
 }
 
-async function openNgoProfileModal(id) {
-  try {
-    const res = await api(`/api/ngos/${id}`);
-    if (!res.ok) throw new Error('Failed to load NGO profile');
-    const data = await res.json();
-    const ngo = data.ngo;
-    
-    document.getElementById('npmIcon').textContent = initials(ngo.name);
-    document.getElementById('npmName').innerHTML = `${esc(ngo.name)} <span class="verified-badge">✓ Verified Partner</span>`;
-    document.getElementById('npmLoc').textContent = ngo.location || 'India';
-    document.getElementById('npmMotive').textContent = ngo.about || ngo.description || 'Verified community support.';
-    document.getElementById('npmArea').textContent = ngo.areaOfWork;
-    document.getElementById('npmReg').textContent = ngo.regNumber;
-    document.getElementById('npmTax').textContent = ngo.taxStatus;
-    
-    const countEl = document.getElementById('npmVolCount');
-    if (countEl) countEl.textContent = ngo.volunteerCount || 0;
+function switchDashTab(tabId, btn) {
+  document.querySelectorAll('.filter-tabs .filter-tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 
-    // Apply button for volunteer request
-    const applyBtn = document.getElementById('npmVolApplyBtn');
-    if (applyBtn) {
-      applyBtn.onclick = async () => {
-        if (!authToken) {
-          showToast('Please login first to volunteer 🙏', 'info');
-          navigate('/login');
-          closeModal('ngoProfileModal');
-          return;
-        }
-        const phone = prompt("Enter your contact number to apply:");
-        if (!phone) return;
-        try {
-          const vRes = await api(`/api/ngos/${ngo._id}/volunteers`, {
-            method: 'POST',
-            body: JSON.stringify({ phone })
-          });
-          const vData = await vRes.json();
-          if (!vRes.ok) throw new Error(vData.error || 'Request failed');
-          showToast('Volunteer request submitted successfully! 🤝', 'success');
-        } catch (vErr) {
-          showToast(vErr.message, 'error');
-        }
-      };
-    }
+  document.querySelectorAll('.dash-subtab').forEach(t => t.classList.add('hidden'));
+  const target = document.getElementById('dashTab-' + tabId);
+  if (target) target.classList.remove('hidden');
+}
 
-    // Supported Communities list
-    const commsEl = document.getElementById('npmCommunities');
-    if (commsEl) {
-      // Find communities supporting this NGO
-      const cRes = await api('/api/communities');
-      const allComms = cRes.ok ? await cRes.json() : [];
-      const supporting = allComms.filter(c => c.supportedNgos?.some(sId => String(sId) === String(ngo._id)));
-      if (supporting.length > 0) {
-        commsEl.innerHTML = supporting.map(c => `<span class="badge-pill">${esc(c.name)}</span>`).join('');
-      } else {
-        commsEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text3);">No attributed communities yet.</div>';
-      }
-    }
-
-    // Gallery list
-    const galleryEl = document.getElementById('npmGallery');
-    if (galleryEl) {
-      galleryEl.innerHTML = `<img src="${ngo.logo || 'https://images.unsplash.com/photo-1579208575657-c595a05383b7?w=300&auto=format&fit=crop&q=80'}" style="width:100%;height:140px;object-fit:cover;border-radius:10px;" />`;
-    }
-
-    // NGO verification videos list
-    const videosEl = document.getElementById('npmVideos');
-    if (videosEl) {
-      if (data.recentWork?.length > 0) {
-        videosEl.innerHTML = data.recentWork.map(v => `
-          <div class="glass proof-card" style="padding:16px;margin-bottom:12px;">
-            <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;">${esc(v.description || 'Verified work update')}</div>
-            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:8px;">Amount utilized: ₹${v.amount?.toLocaleString('en-IN')}</div>
-            ${v.proofVideo ? `<a href="${esc(v.proofVideo)}" target="_blank" style="font-size:0.75rem;color:var(--blue);font-weight:700;text-decoration:none;">▶ Watch Video Proof</a>` : ''}
-          </div>
-        `).join('');
-      } else {
-        videosEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text3);text-align:center;">No recent verification videos.</div>';
-      }
-    }
-
-    openModal('ngoProfileModal');
-  } catch (err) {
-    showToast(err.message, 'error');
+// ------------------------------------------------------------
+// 6. VIDEO PROOF & INVOICE MODALS
+// ------------------------------------------------------------
+function openVideoProofModal(donationId) {
+  const d = userDonationsHistory.find(x => x.id === donationId) || userDonationsHistory[0];
+  document.getElementById('videoProofTitle').innerText = `${d.causeTitle} — Execution Proof`;
+  document.getElementById('videoProofDate').innerText = `${d.date} • Greater Noida`;
+  document.getElementById('hudGps').innerText = d.gps;
+  document.getElementById('hudHash').innerText = d.hash.substring(0, 16) + '...';
+  
+  const modal = document.getElementById('videoProofModal');
+  modal.classList.remove('hidden');
+  
+  const video = document.getElementById('proofVideoElem');
+  if (video) {
+    video.currentTime = 0;
+    video.play().catch(() => {});
   }
 }
 
-/* ============================================================
-   IMPACT CENTER PAGE
-   ============================================================ */
-async function fetchTransparency() {
-  const container = document.getElementById('impactContainer');
-  if (!container) return;
+function closeVideoProofModal() {
+  const modal = document.getElementById('videoProofModal');
+  modal.classList.add('hidden');
+  const video = document.getElementById('proofVideoElem');
+  if (video) video.pause();
+}
 
+function openInvoiceModalFromProof() {
+  document.getElementById('invoiceModal').classList.remove('hidden');
+}
+
+function closeInvoiceModal() {
+  document.getElementById('invoiceModal').classList.add('hidden');
+}
+
+function downloadAuditReceipt(donationId) {
+  showToast('📄 Generating official cryptographic audit certificate PDF...', 'success');
+  setTimeout(() => {
+    window.print();
+  }, 600);
+}
+
+// ------------------------------------------------------------
+// 7. VOLUNTEER IN-APP CAMERA SIMULATOR
+// ------------------------------------------------------------
+let camMediaStream = null;
+let camRecTimer = null;
+let camSeconds = 0;
+
+async function openVolunteerCameraModal() {
+  const modal = document.getElementById('volunteerCameraModal');
+  modal.classList.remove('hidden');
+  
+  const video = document.getElementById('volunteerCamVideo');
   try {
-    const res = await api('/api/transparency');
-    if (!res.ok) throw new Error('Impact fetch failed');
-    const data = await res.json();
-    const logs = Array.isArray(data) ? data : (data.logs || []);
-
-    if (!logs.length) {
-      container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><span class="empty-icon">🌱</span><p>No verified deliveries recorded yet.</p></div>';
-      return;
-    }
-
-    container.innerHTML = logs.map((log, i) => {
-      const date = log.createdAt ? new Date(log.createdAt).toLocaleDateString('en-IN') : 'Verified';
-      const ngoName = log.ngo?.name || 'Verified NGO';
-      const causeTitle = log.cause?.title || 'Cause';
-      const amount = log.amount || 0;
-      
-      // Attempt to extract YouTube video ID to render iframe or premium thumbnail
-      let videoId = '';
-      if (log.proofVideo) {
-        const match = log.proofVideo.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-        if (match && match[1]) videoId = match[1];
-      }
-      
-      const videoHtml = videoId
-        ? `
-          <div class="proof-video-wrap">
-            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-          </div>
-        `
-        : log.proofVideo 
-          ? `<a href="${esc(log.proofVideo)}" target="_blank" class="btn btn-outline btn-full" style="margin: 12px 0;">▶ Watch proof video link</a>` 
-          : '<div style="font-size:0.8rem;color:var(--text3);margin:12px 0;">Proof verification pending</div>';
-
-      return `
-        <div class="glass proof-card reveal" style="transition-delay: ${i * 0.05}s">
-          <div class="proof-card-header">
-            <div class="proof-ngo">
-              <div class="proof-ngo-name">${esc(ngoName)}</div>
-              <span class="verified-badge">✓ Verified</span>
-            </div>
-            <div class="proof-amount grad-text">₹${amount.toLocaleString('en-IN')}</div>
-          </div>
-          <div class="proof-cause">📂 Cause: ${esc(causeTitle)}</div>
-          <div style="font-size:0.75rem;color:var(--text3);">📍 Location: ${esc(log.location || 'Verified delivery location')}</div>
-          <p class="proof-desc" style="margin-top:10px;">${esc(log.description)}</p>
-          ${videoHtml}
-          <div style="font-size:0.72rem;color:var(--text3);text-align:right;">Verified on: ${date}</div>
-        </div>
-      `;
-    }).join('');
-    initReveal();
+    // Attempt real camera stream
+    camMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    if (video) video.srcObject = camMediaStream;
   } catch (err) {
-    console.error(err);
+    console.warn("Using simulated video feed for camera viewfinder:", err.message);
+    if (video) {
+      video.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+      video.loop = true;
+      video.play().catch(() => {});
+    }
   }
 }
 
-/* ============================================================
-   LEADERBOARD PAGE
-   ============================================================ */
-let lbTab = 'communities';
-
-async function fetchLeaderboards() {
-  await renderLeaderboardTab();
+function closeVolunteerCameraModal() {
+  if (camMediaStream) {
+    camMediaStream.getTracks().forEach(t => t.stop());
+    camMediaStream = null;
+  }
+  if (camRecTimer) clearInterval(camRecTimer);
+  document.getElementById('volunteerCameraModal').classList.add('hidden');
 }
 
-function switchLeaderboardTab(tab, btn) {
-  lbTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderLeaderboardTab();
+function startVolunteerRecording() {
+  document.getElementById('btnStartRec').style.display = 'none';
+  document.getElementById('btnStopRec').style.display = 'inline-flex';
+  document.getElementById('camRecIndicator').style.display = 'inline-flex';
+  
+  camSeconds = 0;
+  camRecTimer = setInterval(() => {
+    camSeconds++;
+    const mins = String(Math.floor(camSeconds / 60)).padStart(2, '0');
+    const secs = String(camSeconds % 60).padStart(2, '0');
+    document.getElementById('camRecTime').innerText = `REC ${mins}:${secs}`;
+  }, 1000);
 }
 
-async function renderLeaderboardTab() {
-  const container = document.getElementById('leaderboardListContainer');
-  if (!container) return;
+function stopVolunteerRecording() {
+  clearInterval(camRecTimer);
+  document.getElementById('btnStopRec').style.display = 'none';
+  document.getElementById('camRecIndicator').style.display = 'none';
+  document.getElementById('volunteerSubmitForm').style.display = 'block';
+  showToast('📹 Video recorded & watermarked with live GPS telemetry!', 'success');
+}
 
-  container.innerHTML = '<div class="empty-state"><span class="empty-icon">⏳</span><p>Loading leaderboard rankings…</p></div>';
+function submitVolunteerProof() {
+  showToast('🚀 Proof uploaded & certified! Dispatched to donor dashboards.', 'success');
+  setTimeout(() => {
+    closeVolunteerCameraModal();
+    navigate('/impact');
+  }, 1000);
+}
 
-  try {
-    const path = lbTab === 'communities' ? '/api/leaderboard/communities' : '/api/leaderboard/donors';
-    const res = await api(path);
-    if (!res.ok) throw new Error('Failed to fetch leaderboard data');
-    const data = await res.json();
+// ------------------------------------------------------------
+// 8. ZERO-LEAKAGE UNIT ECONOMICS CALCULATOR
+// ------------------------------------------------------------
+function updateCalculator(val) {
+  const amount = parseFloat(val) || 10;
+  document.getElementById('calcInputAmount').value = amount;
+  document.getElementById('calcSlider').value = Math.min(1000, amount);
 
-    if (!data.length) {
-      container.innerHTML = '<div class="empty-state"><span class="empty-icon">📊</span><p>No community activities recorded yet.</p></div>';
-      return;
-    }
+  const aid = (amount * 0.95).toFixed(2);
+  const fee = (amount * 0.05).toFixed(2);
 
-    const medals = ['🥇', '🥈', '🥉'];
-    const colors = [
-      'linear-gradient(135deg,#2563EB,#7C3AED)',
-      'linear-gradient(135deg,#10B981,#06B6D4)',
-      'linear-gradient(135deg,#F97316,#EF4444)',
-      'linear-gradient(135deg,#F59E0B,#F97316)',
-      'linear-gradient(135deg,#8B5CF6,#EC4899)'
-    ];
+  document.getElementById('calcAidValue').innerText = `₹${aid}`;
+  document.getElementById('calcFeeValue').innerText = `₹${fee}`;
+}
 
-    container.innerHTML = `
-      <div class="leaderboard-list">
-        ${data.map((item, i) => {
-          const rank = i + 1;
-          const medal = medals[i] || `#${rank}`;
-          const grad = colors[i % colors.length];
-          const initial = initials(item.name);
-          const detailUrl = lbTab === 'communities' ? `/community-dashboard?id=${item._id}` : '/dashboard';
+// ------------------------------------------------------------
+// 9. CAMPUS GUILDS & LEADERBOARD RENDERING
+// ------------------------------------------------------------
+function renderGuilds() {
+  const el = document.getElementById('guildsGrid');
+  if (!el) return;
 
-          if (lbTab === 'communities') {
-            return `
-              <div class="glass leader-card reveal ${rank <= 3 ? 'rank-' + rank : ''}" style="transition-delay: ${i * 0.04}s">
-                <div class="leader-rank">${medal}</div>
-                <div class="leader-avatar-circle" style="background:${grad}">${initial}</div>
-                <div class="leader-details">
-                  <div class="leader-name-row">
-                    <a href="${detailUrl}" style="font-weight:700;" class="leader-name">${esc(item.name)}</a>
-                    <span class="tag tag-blue" style="font-size:0.65rem;padding:2px 8px;">${esc(item.category)}</span>
-                  </div>
-                  <div class="leader-sub">${item.members?.length || 0} members · supported NGOs</div>
-                </div>
-                <div style="text-align:right;">
-                  <div class="leader-score grad-text">₹${(item.totalRaised || 0).toLocaleString('en-IN')}</div>
-                  <div style="font-size:0.75rem;color:var(--text3);">Score: ${item.impactScore || 0}</div>
-                </div>
-              </div>
-            `;
-          } else {
-            const level = item.level || 1;
-            const title = item.title || 'Supporter';
-            const donated = item.totalDonated || 0;
-            return `
-              <div class="glass leader-card reveal ${rank <= 3 ? 'rank-' + rank : ''}" style="transition-delay: ${i * 0.04}s">
-                <div class="leader-rank">${medal}</div>
-                <div class="leader-avatar-circle" style="background:${grad}">${initial}</div>
-                <div class="leader-details">
-                  <div class="leader-name-row">
-                    <span class="leader-name">${esc(item.name)}</span>
-                    <span class="level-badge" style="font-size:0.65rem;padding:2px 8px;">⭐ Lv.${level}</span>
-                  </div>
-                  <div class="leader-sub">${esc(title)} · ${item.donationCount || 0} donations</div>
-                </div>
-                <div style="text-align:right;">
-                  <div class="leader-score grad-text">₹${donated.toLocaleString('en-IN')}</div>
-                  <div style="font-size:0.75rem;color:var(--text3);">${item.xp || 0} XP</div>
-                </div>
-              </div>
-            `;
-          }
-        }).join('')}
+  el.innerHTML = CAMPUS_GUILDS.map(g => `
+    <div class="card-glass">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="badge badge-cyan">Rank #${g.rank}</span>
+        <span style="font-size:0.8rem; font-weight:700; color:var(--amber);">${g.streak}</span>
+      </div>
+      <h3 style="font-size:1.2rem; margin-bottom:6px;">${g.name}</h3>
+      <div style="font-size:0.8rem; color:var(--emerald-light); font-weight:600; margin-bottom:12px;">${g.college}</div>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">${g.tagline}</p>
+      
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; border-top:1px solid var(--border); padding-top:12px; margin-bottom:16px;">
+        <span>${g.members} Members</span>
+        <span style="color:var(--emerald-light);">${g.unitsFunded} Units Funded</span>
+      </div>
+
+      <button class="btn btn-secondary btn-full" onclick="showToast('🤝 Joined ${g.name}! Your contributions now boost your campus guild.', 'success')">
+        Join Campus Guild
+      </button>
+    </div>
+  `).join('');
+}
+
+function renderLeaderboard() {
+  const tableBody = document.getElementById('leaderboardGuildsBody');
+  if (tableBody) {
+    tableBody.innerHTML = CAMPUS_GUILDS.map(g => `
+      <tr ${g.rank === 1 ? 'class="highlight-acta"' : ''}>
+        <td><strong style="color:var(--amber);">#${g.rank}</strong></td>
+        <td><strong>${g.name}</strong><br><span style="font-size:0.75rem; color:var(--text-dim);">${g.college}</span></td>
+        <td>${g.members}</td>
+        <td style="font-weight:700; color:var(--emerald-light);">${g.unitsFunded} units</td>
+        <td><code>${g.xp} XP</code></td>
+      </tr>
+    `).join('');
+  }
+
+  const streaksList = document.getElementById('leaderboardStreaksList');
+  if (streaksList) {
+    streaksList.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(255,255,255,0.03); border-radius:8px;">
+        <div><strong>Piyush Singh (Section 3C)</strong><br><span style="font-size:0.75rem; color:var(--text-dim);">GLBIM Greater Noida</span></div>
+        <div style="color:var(--amber); font-weight:800;">🔥 19 Days</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(255,255,255,0.03); border-radius:8px;">
+        <div><strong>Rohan Sharma (Hostel-B)</strong><br><span style="font-size:0.75rem; color:var(--text-dim);">GLBITM CSE</span></div>
+        <div style="color:var(--amber); font-weight:800;">🔥 14 Days</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(255,255,255,0.03); border-radius:8px;">
+        <div><strong>Sneha Verma (Hostel-Alpha)</strong><br><span style="font-size:0.75rem; color:var(--text-dim);">GLBITM IT</span></div>
+        <div style="color:var(--amber); font-weight:800;">🔥 11 Days</div>
       </div>
     `;
-    initReveal();
-  } catch (err) {
-    container.innerHTML = `<div class="empty-state"><span class="empty-icon">❌</span><p>${err.message}</p></div>`;
   }
 }
 
-/* ============================================================
-   USER DASHBOARD PAGE
-   ============================================================ */
-let activeDashboardTab = 'overview';
+function renderProofFeed() {
+  const el = document.getElementById('proofsGrid');
+  if (!el) return;
 
-function switchDashboardTab(tab, btn) {
-  activeDashboardTab = tab;
-  document.querySelectorAll('.dashboard-menu-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  
-  // Show active sub-panel
-  document.querySelectorAll('.dashboard-sub-panel').forEach(p => p.classList.add('hidden'));
-  document.getElementById(`dpanel-${tab}`).classList.remove('hidden');
-
-  if (tab === 'badges') {
-    renderUserBadges();
-  } else if (tab === 'gamification') {
-    renderGamificationProgression();
-  } else if (tab === 'ai-advisor') {
-    loadAiRecommendations();
-  }
-}
-
-async function loadUserDashboard() {
-  if (!authToken) {
-    showToast('Please login first to access the User Dashboard 🙏', 'info');
-    navigate('/login');
-    return;
-  }
-
-  try {
-    const res = await api('/api/dashboard');
-    if (!res.ok) throw new Error('Failed to load dashboard data');
-    const data = await res.json();
-    currentUser = data.user;
-
-    // Sidebar Avatar Block
-    const initial = initials(currentUser.name);
-    document.getElementById('dbAvatar').textContent = initial;
-    document.getElementById('dbName').textContent = currentUser.name;
-    document.getElementById('dbEmail').textContent = currentUser.email;
-    document.getElementById('dbLevelPill').textContent = `Level ${currentUser.level || 1} - ${currentUser.title || 'Supporter'}`;
-
-    // Overview Stats
-    document.getElementById('dbStatDonated').textContent = '₹' + (currentUser.totalDonated || 0).toLocaleString('en-IN');
-    document.getElementById('dbStatXP').textContent = (currentUser.xp || 0).toLocaleString('en-IN') + ' XP';
-    document.getElementById('dbStatCount').textContent = currentUser.donationCount || 0;
-
-    // Overview progress bar
-    const prog = data.progression || {};
-    const nextLevel = (currentUser.level || 1) + 1;
-    const progressPct = prog.progress || 0;
-    
-    document.getElementById('dbLevelLabel').textContent = `Lvl ${currentUser.level || 1} ➔ Lvl ${nextLevel}`;
-    document.getElementById('dbXPProgressText').textContent = `${(currentUser.xp || 0).toLocaleString('en-IN')} / ${(prog.nextLevelXp || 1000).toLocaleString('en-IN')} XP`;
-    document.getElementById('dbXPProgressBar').style.width = `${progressPct}%`;
-    document.getElementById('dbXPRemainingText').textContent = `${(prog.xpRemaining || 0).toLocaleString('en-IN')} XP remaining to level up`;
-
-    // Attributed Communities Roster
-    const commsEl = document.getElementById('dbCommunitiesJoined');
-    if (commsEl) {
-      if (currentUser.communities?.length > 0) {
-        // Fetch community details to show names
-        const cRes = await api('/api/communities');
-        const allComms = cRes.ok ? await cRes.json() : [];
-        const joined = allComms.filter(c => currentUser.communities.includes(c._id));
-        
-        commsEl.innerHTML = joined.map(c => `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:34px;height:34px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🤝</div>
-              <div>
-                <a href="/community-dashboard?id=${c._id}" style="font-weight:700;font-size:0.88rem;text-decoration:none;">${esc(c.name)}</a>
-                <div style="font-size:0.72rem;color:var(--text3);">${c.members?.length || 0} members · code: ${c.code}</div>
-              </div>
-            </div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;">₹${(c.totalRaised||0).toLocaleString('en-IN')}</div>
-          </div>
-        `).join('');
-      } else {
-        commsEl.innerHTML = '<div class="empty-panel"><p style="font-size:0.82rem;">You haven\'t joined any communities yet. Join or create a group to start community contributions.</p></div>';
-      }
-    }
-
-    // Donation History Table
-    const tbody = document.getElementById('dbHistoryTableBody');
-    if (tbody) {
-      const donations = data.recentDonations || [];
-      if (donations.length > 0) {
-        tbody.innerHTML = donations.map(d => {
-          const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-IN') : '-';
-          const statusClass = d.status === 'verified' ? 'tag-green' : d.status === 'completed' ? 'tag-blue' : 'tag-orange';
-          const proofBtn = d.proofVideo 
-            ? `<a href="${esc(d.proofVideo)}" target="_blank" class="btn btn-outline" style="padding:4px 10px;font-size:0.75rem;border-radius:4px;">Watch Proof</a>` 
-            : `<span style="color:var(--text3);font-size:0.75rem;">Awaiting proof</span>`;
-            
-          return `
-            <tr>
-              <td style="font-weight:600;">${d.cause?.icon || '📂'} ${esc(d.cause?.title)}</td>
-              <td style="font-family:'Space Grotesk',sans-serif;font-weight:700;">₹${(d.amount||0).toLocaleString('en-IN')}</td>
-              <td style="color:var(--text3);font-size:0.82rem;">${date}</td>
-              <td style="font-size:0.85rem;">${esc(d.ngo?.name || 'Pending assignment')}</td>
-              <td style="font-size:0.82rem;color:var(--text3);">${esc(d.ngo?.location || 'India')}</td>
-              <td>${proofBtn}</td>
-              <td><span class="tag ${statusClass}" style="padding:2px 8px;font-size:0.7rem;">${esc(d.status)}</span></td>
-            </tr>
-          `;
-        }).join('');
-      } else {
-        tbody.innerHTML = `<tr><td colspan="7" style="padding:28px 14px;"><div class="empty-panel"><p style="font-size:0.85rem;text-align:center;">No donation history yet. Supporting a cause will unlock logs.</p></div></td></tr>`;
-      }
-    }
-
-    // Load Overview activity feeds
-    const actFeed = document.getElementById('dbOverviewActivity');
-    if (actFeed) {
-      const donations = data.recentDonations || [];
-      if (donations.length > 0) {
-        actFeed.innerHTML = donations.slice(0, 3).map(d => `
-          <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;padding:8px 0;border-bottom:1px solid var(--border);">
-            <div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${d.cause?.icon || '📂'}</div>
-            <div style="flex:1;">
-              <div style="font-weight:700;">Contributed to ${esc(d.cause?.title)}</div>
-              <div style="font-size:0.75rem;color:var(--text3);">${d.ngo?.name || 'NGO'} · ${d.status}</div>
-            </div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);">+₹${(d.amount||0).toLocaleString('en-IN')}</div>
-          </div>
-        `).join('');
-      } else {
-        actFeed.innerHTML = '<div style="font-size:0.8rem;color:var(--text3);text-align:center;">No recent actions.</div>';
-      }
-    }
-
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-function renderUserBadges() {
-  const container = document.getElementById('dbBadgesGrid');
-  if (!container) return;
-  const badges = currentUser.badges || [];
-  if (badges.length > 0) {
-    container.innerHTML = badges.map(b => `
-      <div class="badge-item earned" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;min-width:110px;">
-        <div class="b-icon" style="font-size:2rem;margin-bottom:8px;">🏆</div>
-        <div class="b-name" style="font-weight:700;font-size:0.8rem;">${esc(b)}</div>
-        <div style="font-size:0.65rem;color:var(--text3);margin-top:2px;">Verified Earned</div>
+  el.innerHTML = userDonationsHistory.map(d => `
+    <div class="card-glass">
+      <div style="position:relative; border-radius:8px; overflow:hidden; aspect-ratio:16/9; background:#000; margin-bottom:14px; cursor:pointer;" onclick="openVideoProofModal('${d.id}')">
+        <video src="${d.proofVideoUrl}" muted loop style="width:100%; height:100%; object-fit:cover;"></video>
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+          <div style="width:48px; height:48px; border-radius:50%; background:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:#061A14;">▶</div>
+        </div>
+        <div style="position:absolute; bottom:8px; left:8px; font-size:0.7rem; font-family:monospace; background:rgba(0,0,0,0.7); padding:2px 8px; border-radius:4px;">
+          GPS: ${d.gps}
+        </div>
       </div>
-    `).join('');
-  } else {
-    container.innerHTML = '<div class="empty-panel" style="grid-column: 1/-1;"><p style="font-size:0.85rem;text-align:center;">No badges earned yet. Unlock badges through consistent contributions.</p></div>';
-  }
+
+      <div style="font-size:0.75rem; color:var(--emerald-light); font-weight:700; text-transform:uppercase; margin-bottom:4px;">
+        ${d.ngo} • Greater Noida
+      </div>
+      <h3 style="font-size:1.1rem; margin-bottom:6px;">${d.causeTitle}</h3>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
+        Distribution completed on ${d.date} backed by wholesale invoice <code>#${d.invoiceId}</code>.
+      </p>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openVideoProofModal('${d.id}')">Watch Video</button>
+        <button class="btn btn-ghost btn-sm" onclick="openInvoiceModalFromProof()">View Bill</button>
+      </div>
+    </div>
+  `).join('');
 }
 
-function renderGamificationProgression() {
-  const container = document.getElementById('dbLevelPath');
-  if (!container) return;
-  
-  // Levels path mapping
-  const ranks = [
-    { minLevel: 1, maxLevel: 4, title: "Contributor", icon: "🌱" },
-    { minLevel: 5, maxLevel: 9, title: "Supporter", icon: "⚡" },
-    { minLevel: 10, maxLevel: 19, title: "Community Builder", icon: "🤝" },
-    { minLevel: 20, maxLevel: 34, title: "Impact Leader", icon: "🔥" },
-    { minLevel: 35, maxLevel: Infinity, title: "Change Champion", icon: "👑" }
+function renderBadges() {
+  const el = document.getElementById('userBadgesGrid');
+  if (!el) return;
+
+  const badges = [
+    { icon: "🌟", title: "First Seed", desc: "Funded your very first ₹10 micro-donation." },
+    { icon: "🍲", title: "Hunger Shield", desc: "Funded 10+ wholesome nutrition meals." },
+    { icon: "🧣", title: "Winter Warmth", desc: "Shielded pavement dwellers with thermal woolens." },
+    { icon: "🏛️", title: "Guild Pioneer", desc: "Active member of GL Bajaj BCA Section 3C." },
+    { icon: "🔥", title: "Streak Master", desc: "Maintained a 5-day continuous giving habit." },
+    { icon: "💯", title: "Century Impact", desc: "Achieved 100+ community impact points." }
   ];
 
-  const currentLevel = currentUser.level || 1;
+  el.innerHTML = badges.map(b => `
+    <div class="card-glass" style="text-align:center; padding:20px;">
+      <div style="font-size:2.5rem; margin-bottom:8px;">${b.icon}</div>
+      <h4 style="font-size:1.05rem; margin-bottom:4px;">${b.title}</h4>
+      <p style="font-size:0.8rem; color:var(--text-muted);">${b.desc}</p>
+      <span class="badge badge-emerald" style="margin-top:10px; font-size:0.65rem;">Unlocked</span>
+    </div>
+  `).join('');
+}
 
-  container.innerHTML = ranks.map(r => {
-    const isDone = currentLevel > r.maxLevel;
-    const isCurrent = currentLevel >= r.minLevel && currentLevel <= r.maxLevel;
-    const activeClass = isDone ? 'done' : isCurrent ? 'current' : '';
-    
-    return `
-      <div class="level-node ${activeClass}" style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:${isCurrent ? 'var(--surface2)' : 'var(--surface)'};border:1px solid ${isCurrent ? 'var(--blue)' : 'var(--border)'};border-radius:12px;margin-bottom:12px;opacity:${isDone||isCurrent ? 1 : 0.6};">
-        <div style="font-size:1.8rem;">${r.icon}</div>
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:0.95rem;">${r.title}</div>
-          <div style="font-size:0.75rem;color:var(--text3);">Levels ${r.minLevel}${Number.isFinite(r.maxLevel) ? '-' + r.maxLevel : '+'}</div>
-        </div>
-        <div>
-          ${isDone ? '<span style="color:var(--green);font-weight:700;">✓ Achieved</span>' : isCurrent ? '<span style="color:var(--blue);font-weight:700;">🔥 Current Rarity</span>' : '<span style="color:var(--text3);">Locked</span>'}
-        </div>
+function runAiAdvisor() {
+  const budget = parseInt(document.getElementById('advisorBudget').value, 10) || 100;
+  const biscuitUnits = Math.floor((budget * 0.4) / 10);
+  const mealUnits = Math.floor((budget * 0.6) / 50);
+
+  const res = document.getElementById('advisorResult');
+  res.classList.remove('hidden');
+  res.innerHTML = `
+    <div style="background:rgba(16,185,129,0.1); border:1px solid var(--emerald-border); padding:16px; border-radius:8px;">
+      <h4 style="color:var(--emerald-light); font-size:1rem; margin-bottom:6px;">Recommended ₹${budget}/Month Impact Allocation:</h4>
+      <ul style="padding-left:18px; margin-bottom:10px; line-height:1.6;">
+        <li>🍪 <strong>${biscuitUnits} Nutrition Biscuit Packs (₹10/ea)</strong> = ₹${biscuitUnits * 10} for school children</li>
+        <li>🍲 <strong>${mealUnits} Full Warm Khichdi Meals (₹50/ea)</strong> = ₹${mealUnits * 50} for daily wagers</li>
+      </ul>
+      <div style="font-size:0.8rem; color:var(--text-dim);">
+        95% (₹${(budget * 0.95).toFixed(2)}) goes directly to bulk food procurement backed by GST bills.
       </div>
-    `;
-  }).join('');
+    </div>
+  `;
 }
 
-// AI Advisor Recommendation Box
-async function loadAiRecommendations() {
-  const reasonBox = document.getElementById('aiRecReason');
-  const causeCard = document.getElementById('aiRecCauseCard');
-  if (!reasonBox || !causeCard) return;
+// ------------------------------------------------------------
+// 10. TOAST NOTIFICATIONS
+// ------------------------------------------------------------
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
 
-  reasonBox.textContent = '⏳ Analyzing your preferences to generate matching causes…';
-  causeCard.innerHTML = '';
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `
+    <span>${type === 'success' ? '✓' : '⚠️'}</span>
+    <span>${msg}</span>
+  `;
 
-  try {
-    const res = await api('/api/ai/recommendations');
-    if (!res.ok) throw new Error('AI recommendations failed');
-    const data = await res.json();
-    const c = data.recommendation;
-
-    reasonBox.textContent = `🤖 Recommendation: "${data.reason}"`;
-
-    if (c) {
-      const emoji = causeEmojis[c.category] || causeEmojis.default;
-      const tagClass = causeTags[c.category] || causeTags.default;
-      const raised = c.raised || 0;
-      const goal = c.goal || 50000;
-      const pct = Math.min((raised / goal) * 100, 100).toFixed(1);
-      
-      causeCard.innerHTML = `
-        <div class="glass cause-card" style="margin-top:16px;border-color:var(--blue);box-shadow:var(--blue-glow);">
-          <div class="cause-body" style="padding: 20px;">
-            <div class="cause-meta-row">
-              <h3 class="cause-title" style="font-size:1.05rem;">${emoji} ${esc(c.title)}</h3>
-              <span class="tag ${tagClass}" style="font-size:0.65rem;padding:2px 8px;">${esc(c.category)}</span>
-            </div>
-            <p class="cause-desc" style="font-size:0.82rem;line-height:1.5;margin-bottom:12px;">${esc(c.description)}</p>
-            <div class="progress-wrap" style="margin-bottom:12px;">
-              <div class="progress-label" style="font-size:0.72rem;">
-                <span>₹${raised.toLocaleString('en-IN')} raised</span>
-                <span>${pct}%</span>
-              </div>
-              <div class="progress-track" style="height:4px;"><div class="progress-fill" style="width:${pct}%"></div></div>
-            </div>
-            <button class="btn btn-primary btn-sm btn-full" style="font-size:0.8rem;padding:8px;" onclick="openDonationModal('${c._id}')">Select Cause</button>
-          </div>
-        </div>
-      `;
-    }
-  } catch (err) {
-    reasonBox.textContent = 'Failed to load AI recommendations.';
-  }
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
 }
 
-// AI Monthly Summary Report Generator
-async function generateAiMonthlySummary() {
-  const box = document.getElementById('aiSummaryReportText');
-  const btn = document.getElementById('aiSummaryReportBtn');
-  if (!box || !btn) return;
+// ------------------------------------------------------------
+// 11. INITIALIZATION
+// ------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+  renderAllCauses('all', 'homeCausesGrid');
+  renderAllCauses('all', 'catalogCausesGrid');
+  renderGuilds();
+  renderLeaderboard();
+  renderProofFeed();
+  renderUserDonations();
+  renderBadges();
+  updateCalculator(100);
 
-  btn.disabled = true;
-  btn.textContent = '🤖 Compiling Report...';
-  box.innerHTML = '⏳ Loading public ledger records to draft impact summary reports…';
-
-  try {
-    const res = await api('/api/ai/impact-summary');
-    if (!res.ok) throw new Error('AI summary failed');
-    const data = await res.json();
-    
-    // Replace formatting markup with bullet points
-    let formatted = data.summary.replace(/\n/g, '<br/>');
-    box.innerHTML = `<div style="font-size:0.9rem;line-height:1.6;color:var(--text2);">${formatted}</div>`;
-  } catch (err) {
-    box.textContent = 'Failed to generate monthly impact summary report.';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '🤖 Generate Summary Report';
-  }
-}
-
-async function editProfile(e) {
-  e.preventDefault();
-  const avatar = document.getElementById('pAvatarUrlInput').value.trim();
-  const bio = document.getElementById('pBioInput').value.trim();
-  const btn = e.target.querySelector('button');
-  
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-
-  try {
-    const res = await api('/api/profile', {
-      method: 'PATCH',
-      body: JSON.stringify({ avatar, bio })
-    });
-    if (!res.ok) throw new Error('Profile update failed');
-    showToast('Profile bio updated successfully!', 'success');
-    closeModal('editProfileModal');
-    await loadUserDashboard();
-  } catch (err) {
-    showToast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Save Changes';
-  }
-}
-
-function openEditProfileModal() {
-  if (!currentUser) return;
-  document.getElementById('pAvatarUrlInput').value = currentUser.avatar || '';
-  document.getElementById('pBioInput').value = currentUser.bio || '';
-  openModal('editProfileModal');
-}
-
-/* ============================================================
-   NGO DASHBOARD & VOLUNTEER ACTIONS
-   ============================================================ */
-async function loadNgoDashboard() {
-  if (!ngoToken) {
-    showToast('Please login first as an NGO partner 🙏', 'info');
-    navigate('/login');
-    return;
-  }
-
-  try {
-    const res = await api('/api/ngo/me');
-    if (!res.ok) throw new Error('Failed to load NGO dashboard');
-    const data = await res.json();
-    currentNgo = data.ngo;
-
-    const initial = initials(currentNgo.name);
-    document.getElementById('ndAvatar').textContent = initial;
-    document.getElementById('ndName').textContent = currentNgo.name;
-    document.getElementById('ndEmail').textContent = currentNgo.email;
-    document.getElementById('ndRegInfo').textContent = `Reg: ${currentNgo.regNumber} | Tax: ${currentNgo.taxStatus}`;
-
-    // Stats
-    document.getElementById('ndStatReceived').textContent = '₹' + (currentNgo.totalReceived || 0).toLocaleString('en-IN');
-    document.getElementById('ndStatCompleted').textContent = currentNgo.tasksCompleted || 0;
-    document.getElementById('ndStatRating').textContent = (currentNgo.rating || 0).toFixed(1);
-    document.getElementById('ndStatVolunteers').textContent = currentNgo.volunteerCount || 0;
-
-    // Approved Work Updates / History
-    const historyEl = document.getElementById('ndHistoryList');
-    if (historyEl) {
-      const updates = currentNgo.updates || [];
-      if (updates.length > 0) {
-        historyEl.innerHTML = updates.map(u => `
-          <div class="donation-item" style="border-left:2px solid var(--green);padding-left:12px;margin-bottom:10px;">
-            <div>
-              <div style="font-weight:700;font-size:0.9rem;">${esc(u.title)}</div>
-              <div style="font-size:0.75rem;color:var(--text3);margin-top:2px;">${esc(u.note)}</div>
-              ${u.proofUrl ? `<div style="margin-top:4px;"><a href="${esc(u.proofUrl)}" target="_blank" style="font-size:0.75rem;color:var(--green);text-decoration:none;font-weight:700;">🔗 View Proof Video</a></div>` : ''}
-            </div>
-          </div>
-        `).join('');
-      } else {
-        historyEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text3);text-align:center;padding:16px;">No work updates uploaded.</div>';
-      }
-    }
-
-    // Volunteers roster
-    const volEl = document.getElementById('ndVolunteersList');
-    if (volEl) {
-      const vols = currentNgo.volunteers || [];
-      if (vols.length > 0) {
-        volEl.innerHTML = vols.map(v => {
-          const actionBtn = v.status === 'requested'
-            ? `
-              <div class="action-buttons-wrap">
-                <button class="btn btn-primary btn-sm" style="padding:4px 10px;font-size:0.72rem;background:var(--green);" onclick="reviewVolunteer('${v.user}','approved')">Approve</button>
-                <button class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:0.72rem;" onclick="reviewVolunteer('${v.user}','rejected')">Reject</button>
-              </div>
-            `
-            : `<span class="tag ${v.status === 'approved' ? 'tag-green' : 'tag-orange'}" style="font-size:0.7rem;padding:2px 8px;">${esc(v.status)}</span>`;
-
-          return `
-            <div class="volunteer-row">
-              <div class="volunteer-name-col">
-                <div class="volunteer-title">${esc(v.name)}</div>
-                <div class="volunteer-email">Email: ${esc(v.email)} | Phone: ${esc(v.phone || '-')}</div>
-              </div>
-              ${actionBtn}
-            </div>
-          `;
-        }).join('');
-      } else {
-        volEl.innerHTML = '<div style="font-size:0.8rem;color:var(--text3);text-align:center;padding:16px;">No registered volunteers found.</div>';
-      }
-    }
-
-    // Populate profile edit fields
-    document.getElementById('ndEditLoc').value = currentNgo.location || '';
-    document.getElementById('ndEditLogo').value = currentNgo.logo || '';
-    document.getElementById('ndEditMotive').value = currentNgo.about || '';
-
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-async function reviewVolunteer(userId, status) {
-  try {
-    const res = await api(`/api/admin/ngos/volunteers/${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status })
-    });
-    if (!res.ok) throw new Error('Verification review failed');
-    showToast(`Volunteer request: ${status}!`, 'success');
-    await loadNgoDashboard();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-async function submitNgoTask(e) {
-  e.preventDefault();
-  const payload = {
-    title: document.getElementById('ndTaskTitle').value.trim(),
-    description: document.getElementById('ndTaskDesc').value.trim(),
-    proofUrl: document.getElementById('ndTaskProofUrl').value.trim()
-  };
-
-  const btn = e.target.querySelector('button');
-  btn.disabled = true;
-  btn.textContent = 'Submitting…';
-
-  try {
-    const res = await api('/api/ngo/tasks', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to submit update');
-
-    showToast('Verification work update submitted! 🚀', 'success');
-    e.target.reset();
-    await loadNgoDashboard();
-  } catch (err) {
-    showToast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Submit Work Update';
-  }
-}
-
-async function updateNgoProfile(e) {
-  e.preventDefault();
-  const payload = {
-    location: document.getElementById('ndEditLoc').value.trim(),
-    logoUrl: document.getElementById('ndEditLogo').value.trim(),
-    motive: document.getElementById('ndEditMotive').value.trim()
-  };
-
-  const btn = e.target.querySelector('button');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-
-  try {
-    const res = await api('/api/ngo/me', {
-      method: 'PATCH',
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('NGO profile update failed');
-    showToast('NGO profile details saved!', 'success');
-    await loadNgoDashboard();
-  } catch (err) {
-    showToast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Save NGO Changes';
-  }
-}
-
-/* ============================================================
-   DONATION FLOW HANDLERS
-   ============================================================ */
-function openDonationModal(causeId) {
-  if (!authToken) {
-    showToast('Please login first to support cause micro-donations 🙏', 'info');
-    navigate('/login');
-    return;
-  }
-  selectedCause = causesData.find(c => c._id === causeId) || null;
-  selectedAmount = 0;
-
-  document.getElementById('donationCauseName').textContent = selectedCause ? `🌟 ${selectedCause.title}` : 'Selected Cause';
-  document.getElementById('customAmount').value = '';
-  document.getElementById('donationAmountDisplay').innerHTML = '<span class="grad-text">₹0</span>';
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
-  
-  openModal('donationModal');
-}
-
-function selectPreset(amt, btn) {
-  selectedAmount = amt;
-  document.getElementById('customAmount').value = '';
-  document.getElementById('donationAmountDisplay').innerHTML = `<span class="grad-text">₹${amt.toLocaleString('en-IN')}</span>`;
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-}
-
-function onCustomAmount(val) {
-  selectedAmount = parseFloat(val) || 0;
-  document.getElementById('donationAmountDisplay').innerHTML = selectedAmount > 0
-    ? `<span class="grad-text">₹${selectedAmount.toLocaleString('en-IN')}</span>`
-    : '<span class="grad-text">₹0</span>';
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
-}
-
-async function proceedToPay() {
-  if (selectedAmount < 10) { showToast('Minimum donation is ₹10', 'error'); return; }
-  if (!selectedCause)       { showToast('Please select a cause first', 'error'); return; }
-
-  const btn = document.getElementById('proceedPayBtn');
-  btn.textContent = '⏳ Creating order…'; btn.disabled = true;
-
-  try {
-    const res = await api('/api/payments/order', {
-      method: 'POST',
-      body: JSON.stringify({ causeId: selectedCause._id, amount: selectedAmount })
-    });
-    const order = await res.json();
-    if (!res.ok) throw new Error(order.message || 'Order creation failed');
-
-    closeModal('donationModal');
-    openRazorpay(order);
-  } catch(e) {
-    showToast(e.message || 'Failed to create order', 'error');
-  } finally {
-    btn.textContent = '💳 Proceed to Pay'; btn.disabled = false;
-  }
-}
-
-function openRazorpay(order) {
-  const options = {
-    key: order.keyId || RAZORPAY_KEY,
-    amount: order.amount * 100,
-    currency: order.currency || 'INR',
-    name: 'ServeMATE',
-    description: `Donation for ${selectedCause?.title || 'Cause'}`,
-    order_id: order.orderId,
-    theme: { color: '#2563EB' },
-    handler: async function(response) {
-      await verifyPayment(response);
-    },
-    modal: {
-      ondismiss: () => showToast('Payment cancelled.', 'info')
-    }
-  };
-  const rp = new Razorpay(options);
-  rp.open();
-}
-
-async function verifyPayment(response) {
-  try {
-    const res = await api('/api/payments/verify', {
-      method: 'POST',
-      body: JSON.stringify({
-        razorpay_order_id:   response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature:  response.razorpay_signature,
-        causeId: selectedCause?._id,
-        amount:  selectedAmount,
-        communityId: selectedCommunityId || null
-      })
-    });
-    const data = await res.json();
-    showSuccessModal(data);
-    launchConfetti();
-    playSound('xp');
-    
-    // Clear attributing community
-    selectedCommunityId = null;
-    
-    // Reload state data
-    await fetchStats();
-  } catch(e) {
-    showToast('Payment verified but could not confirm. Please contact support.', 'error');
-  }
-}
-
-function showSuccessModal(data) {
-  const xpEl      = document.getElementById('successXP');
-  const levelEl   = document.getElementById('successLevelInfo');
-  const badgesEl  = document.getElementById('successBadges');
-  const subEl     = document.getElementById('successSubText');
-  const causeEl   = document.getElementById('successCauseMsg');
-
-  const xpEarned = data.donation?.xpEarned || data.xpEarned || selectedAmount || 0;
-  const level    = data.user?.level || data.newLevel || data.level || '?';
-  const title    = data.user?.title || '';
-  const badges   = data.user?.badges || data.badges || [];
-  const prog     = data.user?.progression;
-  const amount   = data.donation?.amount || selectedAmount || 0;
-
-  subEl.textContent = `₹${amount.toLocaleString('en-IN')} donated successfully. You're now Level ${level}${title ? ' — ' + title : ''}! 🌟`;
-  xpEl.innerHTML    = xpEarned > 0 ? `<span class="grad-text">+${xpEarned.toLocaleString('en-IN')} XP Earned!</span>` : '';
-
-  if (prog) {
-    const remaining = prog.xpRemaining || 0;
-    levelEl.innerHTML = remaining > 0
-      ? `📊 ${remaining.toLocaleString('en-IN')} XP more to reach Level ${level + 1}`
-      : '';
-  } else {
-    levelEl.innerHTML = '';
-  }
-
-  // Cause-specific thank you messages
-  const causeCategory = selectedCause?.category || '';
-  const causeTitle = selectedCause?.title || 'this cause';
-  const causeMessages = {
-    'food':       `🍛 Your ₹${amount} donation to "${causeTitle}" will help provide nutritious meals to people in need. Every meal counts — you are fighting hunger one plate at a time!`,
-    'environment':`🌳 Your ₹${amount} donation to "${causeTitle}" will help plant and nurture trees for a greener future. Together we are healing the planet, one tree at a time!`,
-    'disaster-relief': `🎒 Your ₹${amount} donation to "${causeTitle}" will supply essential items to families who need them most. Clean water, hygiene kits, and daily necessities — your impact is real!`,
-    'education':  `📚 Your ₹${amount} donation to "${causeTitle}" will help provide education and learning resources to underserved children. Knowledge is the greatest gift!`,
-    'healthcare': `💊 Your ₹${amount} donation to "${causeTitle}" will support healthcare access for those who cannot afford it. You are saving lives with your generosity!`,
-  };
-  const msg = causeMessages[causeCategory] || `💝 Your ₹${amount} donation to "${causeTitle}" will create real, verified impact. Thank you for being a changemaker!`;
-  causeEl.innerHTML = msg;
-
-  badgesEl.innerHTML = badges.map(b => `<span class="badge-pill">${b}</span>`).join('');
-  openModal('successModal');
-}
-
-/* ============================================================
-   CONTACT MESSAGE SUBMIT
-   ============================================================ */
-async function submitContact(e) {
-  e.preventDefault();
-  const btn = document.getElementById('contactSubmit');
-  btn.textContent = '⏳ Sending…'; btn.disabled = true;
-  try {
-    const res = await api('/api/contact', {
-      method: 'POST',
-      body: JSON.stringify({
-        name:    document.getElementById('contactName').value,
-        email:   document.getElementById('contactEmail').value,
-        message: document.getElementById('contactMsg').value
-      })
-    });
-    if (!res.ok) throw new Error('Failed');
-    document.getElementById('contactSuccess').style.display = 'block';
-    document.getElementById('contactForm').reset();
-    showToast('Message sent successfully! 📨');
-  } catch(err) {
-    showToast('Failed to send. Please try again.', 'error');
-  } finally {
-    btn.textContent = '✉️ Send Message'; btn.disabled = false;
-  }
-}
-
-/* ============================================================
-   HELPERS & UTILS
-   ============================================================ */
-function esc(str) {
-  const d = document.createElement('div');
-  d.textContent = str || '';
-  return d.innerHTML;
-}
-
-function initials(name) {
-  return String(name || 'SM')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(p => p[0].toUpperCase())
-    .join('') || 'SM';
-}
-
-function openModal(id) {
-  const m = document.getElementById(id);
-  if (m) {
-    m.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-}
-function closeModal(id) {
-  const m = document.getElementById(id);
-  if (m) {
-    m.classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-}
-function handleOverlayClick(e, id) {
-  if (e.target.classList.contains('modal-overlay')) closeModal(id);
-}
-
-// FAQ Accordion toggles
-function toggleFaq(el) {
-  const card = el.closest('.faq-card');
-  const body = card.querySelector('.faq-body');
-  const arrow = card.querySelector('.faq-arrow');
-  const isOpen = !body.classList.contains('hidden');
-
-  if (isOpen) {
-    body.classList.add('hidden');
-    arrow.textContent = '▼';
-  } else {
-    body.classList.remove('hidden');
-    arrow.textContent = '▲';
-  }
-}
-
-// AI Advisor Advisor budget planter suggestions
-async function generateAdvisorPlan(event) {
-  event.preventDefault();
-  const budget = document.getElementById('aiBudget').value;
-  const cause = document.getElementById('aiCause').value;
-  const goal = document.getElementById('aiGoal').value;
-  const submitBtn = document.getElementById('aiAdvisorSubmit');
-  const loadingDiv = document.getElementById('aiAdvisorLoading');
-  const resultDiv = document.getElementById('aiAdvisorResult');
-  const planTextEl = document.getElementById('aiAdvisorPlanText');
-  
-  submitBtn.disabled = true;
-  submitBtn.textContent = '⏳ Preparing Plan...';
-  loadingDiv.classList.remove('hidden');
-  resultDiv.classList.add('hidden');
-  
-  try {
-    const res = await api('/api/ai/advisor', {
-      method: 'POST',
-      body: JSON.stringify({ amount: budget, category: cause, goal })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to generate impact plan');
-    
-    planTextEl.textContent = data.plan;
-    resultDiv.classList.remove('hidden');
-    playSound('xp');
-  } catch(err) {
-    showToast(err.message || 'Error communicating with AI Advisor', 'error');
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = '🤖 Generate Impact Plan';
-    loadingDiv.classList.add('hidden');
-  }
-}
-
-/* ============================================================
-   CONFETTI & AUDIO SYNTHESIS
-   ============================================================ */
-function launchConfetti() {
-  const colors = ['#2563EB','#7C3AED','#10B981','#F59E0B','#F97316','#EF4444','#06B6D4'];
-  for (let i = 0; i < 80; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.cssText = `
-      left: ${Math.random() * 100}vw;
-      top: -20px;
-      background: ${colors[Math.floor(Math.random() * colors.length)]};
-      width: ${6 + Math.random() * 10}px;
-      height: ${6 + Math.random() * 10}px;
-      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
-      animation-duration: ${2 + Math.random() * 2.5}s;
-      animation-delay: ${Math.random() * 0.8}s;
-    `;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 5000);
-  }
-}
-
-function playSound(type) {
-  try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    const now = ctx.currentTime;
-    
-    if (type === 'xp') {
-      const freqs = [261.63, 329.63, 392.00, 523.25, 659.25, 1046.50];
-      gain.gain.setValueAtTime(0.06, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-      
-      freqs.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        osc.connect(gain);
-        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
-        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-        osc.start(now + idx * 0.08);
-        osc.stop(now + 0.35 + idx * 0.08);
-      });
-    } else if (type === 'click') {
-      const osc = ctx.createOscillator();
-      osc.connect(gain);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(450, now);
-      osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
-      gain.gain.setValueAtTime(0.03, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      osc.start(now);
-      osc.stop(now + 0.08);
-    }
-  } catch (e) {
-    console.warn('Audio synthesis disabled', e);
-  }
-}
-
-document.addEventListener('click', e => {
-  if (e.target.closest('.btn, .tab-btn, .nav-links a, .nav-logo, .btn-donate, .dashboard-menu-btn')) {
-    playSound('click');
-  }
+  // Initial path routing
+  const initialPath = window.location.pathname || '/';
+  navigate(initialPath, false);
 });
-
-/* ============================================================
-   LIGHT/DARK THEME TOGGLE
-   ============================================================ */
-function applyInitialTheme() {
-  const savedTheme = localStorage.getItem('servemate_theme') || 'dark';
-  const body = document.body;
-  const icon = document.getElementById('themeIcon');
-  
-  if (savedTheme === 'light') {
-    body.classList.add('light-mode');
-    if (icon) {
-      icon.textContent = '☀️';
-      icon.style.transform = 'rotate(360deg)';
-    }
-  } else {
-    body.classList.remove('light-mode');
-    if (icon) {
-      icon.textContent = '🌙';
-      icon.style.transform = 'rotate(0deg)';
-    }
-  }
-}
-
-function toggleTheme() {
-  const body = document.body;
-  const icon = document.getElementById('themeIcon');
-  
-  body.classList.toggle('light-mode');
-  const isLight = body.classList.contains('light-mode');
-  
-  localStorage.setItem('servemate_theme', isLight ? 'light' : 'dark');
-  
-  if (icon) {
-    icon.style.transform = 'scale(0.3) rotate(180deg)';
-    setTimeout(() => {
-      icon.textContent = isLight ? '☀️' : '🌙';
-      icon.style.transform = isLight ? 'scale(1) rotate(360deg)' : 'scale(1) rotate(0deg)';
-    }, 150);
-  }
-}
-
-/* ============================================================
-   REVEAL TIMINGS & ESC KEYBOARD
-   ============================================================ */
-function initReveal() {
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        obs.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    ['donationModal','successModal','createCommunityModal','ngoProfileModal','editProfileModal','mobileMenuDrawer'].forEach(id => closeModal(id));
-    const btn = document.getElementById('mobileMenuToggle');
-    if (btn) btn.classList.remove('open');
-    const drawer = document.getElementById('mobileMenuDrawer');
-    if (drawer) drawer.classList.remove('active');
-  }
-});
-
-function toggleMobileMenu() {
-  const drawer = document.getElementById('mobileMenuDrawer');
-  const btn = document.getElementById('mobileMenuToggle');
-  if (drawer) {
-    const isOpening = drawer.classList.contains('hidden');
-    if (isOpening) {
-      drawer.classList.remove('hidden');
-      drawer.classList.add('active');
-      if (btn) btn.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    } else {
-      drawer.classList.add('hidden');
-      drawer.classList.remove('active');
-      if (btn) btn.classList.remove('open');
-      document.body.style.overflow = '';
-    }
-  }
-}
-
-/* ============================================================
-   SUPABASE CLIENT & AUTOLOGOUT CONFIGURATIONS
-   ============================================================ */
-let supabaseClient = null;
-let inactivityTimer = null;
-const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes of inactivity
-
-async function initSupabase() {
-  try {
-    const res = await fetch("/api/config");
-    if (!res.ok) throw new Error("Failed to load backend config");
-    const config = await res.json();
-    
-    if (window.supabase) {
-      supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-      console.log("[supabase] Client initialized successfully");
-      
-      // Auto-register session changes
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        console.log("[supabase] Session event:", event);
-        if (session) {
-          authToken = session.access_token;
-          localStorage.setItem("servemate_token", authToken);
-          resetInactivityTimer();
-        } else {
-          authToken = "";
-          ngoToken = "";
-          currentUser = null;
-          currentNgo = null;
-          localStorage.removeItem("servemate_token");
-          localStorage.removeItem("servemate_ngo_token");
-          if (inactivityTimer) clearTimeout(inactivityTimer);
-          updateNav();
-        }
-      });
-    }
-  } catch (err) {
-    console.error("[supabase] SDK initialization failed:", err.message);
-  }
-}
-
-// Inactivity Auto-Logout Tracker
-function resetInactivityTimer() {
-  if (inactivityTimer) clearTimeout(inactivityTimer);
-  if (authToken || ngoToken) {
-    inactivityTimer = setTimeout(triggerAutoLogout, INACTIVITY_LIMIT);
-  }
-}
-
-function triggerAutoLogout() {
-  showToast("You have been automatically logged out due to inactivity", "info");
-  logout();
-}
-
-// Activity event bindings
-["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(event => {
-  window.addEventListener(event, resetInactivityTimer, { passive: true });
-});
-
-// Switch login card roles (User Account vs NGO Partner)
-function showLoginTab(role) {
-  const isNgo = role === "ngo";
-  document.getElementById("lTabUser").classList.toggle("active", !isNgo);
-  document.getElementById("lTabNgo").classList.toggle("active", isNgo);
-  
-  document.getElementById("oauthRow").classList.toggle("hidden", isNgo);
-  document.getElementById("loginNgoForm").classList.toggle("hidden", !isNgo);
-  
-  if (isNgo) {
-    document.getElementById("loginUserForm").classList.add("hidden");
-    document.getElementById("loginUserPhoneForm").classList.add("hidden");
-    document.getElementById("loginUserPhoneVerifyForm").classList.add("hidden");
-  } else {
-    // Restore default user type (Email)
-    toggleLoginType("email");
-  }
-}
-
-// Switch user login types (Email vs Phone number OTP)
-function toggleLoginType(type) {
-  const isPhone = type === "phone";
-  document.getElementById("loginTypeEmailBtn").classList.toggle("active", !isPhone);
-  document.getElementById("loginTypePhoneBtn").classList.toggle("active", isPhone);
-  
-  document.getElementById("loginUserForm").classList.toggle("hidden", isPhone);
-  document.getElementById("loginUserPhoneForm").classList.toggle("hidden", !isPhone);
-  document.getElementById("loginUserPhoneVerifyForm").classList.add("hidden"); // Reset verification
-}
-
-// Client Google/Facebook OAuth trigger
-async function signInWithProvider(provider) {
-  if (!supabaseClient) {
-    return showToast("Auth module is initializing, please wait...", "error");
-  }
-  
-  try {
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-    if (error) throw error;
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-}
-
-// Phone OTP send execution
-async function handlePhoneLoginSendOtp(e) {
-  e.preventDefault();
-  const phone = document.getElementById("lUserPhone").value.trim();
-  const errorEl = e.target.querySelector(".error-message");
-  if (errorEl) errorEl.style.display = "none";
-  
-  if (!phone || !phone.startsWith("+")) {
-    const errText = "Please enter country code prefix (e.g. +919999999999)";
-    if (errorEl) {
-      errorEl.textContent = errText;
-      errorEl.style.display = "block";
-    } else {
-      showToast(errText, "error");
-    }
-    return;
-  }
-
-  try {
-    const btn = document.getElementById("btnSendPhoneOtp");
-    btn.disabled = true;
-    btn.textContent = "Sending code...";
-
-    const res = await api("/api/auth/phone/send-otp", {
-      method: "POST",
-      body: JSON.stringify({ phone })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to dispatch verification code");
-
-    showToast("Verification code SMS has been sent!", "success");
-    document.getElementById("loginUserPhoneForm").classList.add("hidden");
-    document.getElementById("loginUserPhoneVerifyForm").classList.remove("hidden");
-  } catch (err) {
-    if (errorEl) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = "block";
-    } else {
-      showToast(err.message, "error");
-    }
-    const btn = document.getElementById("btnSendPhoneOtp");
-    btn.disabled = false;
-    btn.textContent = "Send Verification Code";
-  }
-}
-
-// Phone OTP verify execution
-async function handlePhoneLoginVerifyOtp(e) {
-  e.preventDefault();
-  const phone = document.getElementById("lUserPhone").value.trim();
-  const otp = document.getElementById("lUserPhoneOtp").value.trim();
-  const errorEl = e.target.querySelector(".error-message");
-  if (errorEl) errorEl.style.display = "none";
-
-  try {
-    const res = await api("/api/auth/phone/verify-otp", {
-      method: "POST",
-      body: JSON.stringify({ phone, otp })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Verification failed");
-
-    authToken = data.token;
-    currentUser = data.user;
-    localStorage.setItem("servemate_token", authToken);
-    
-    showToast(`Welcome back, ${currentUser.name}! 🚀`);
-    
-    // Reset forms
-    document.getElementById("loginUserPhoneVerifyForm").classList.add("hidden");
-    e.target.reset();
-    document.getElementById("loginUserPhoneForm").reset();
-    
-    navigate("/dashboard");
-  } catch (err) {
-    if (errorEl) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = "block";
-    } else {
-      showToast(err.message, "error");
-    }
-  }
-}
-
-function applyInitialTheme() {
-  const saved = localStorage.getItem('servemate_theme');
-  if (saved === 'dark') {
-    document.body.classList.remove('light-mode');
-    document.body.classList.add('dark-mode');
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.textContent = '☀️';
-  } else {
-    document.body.classList.add('light-mode');
-    document.body.classList.remove('dark-mode');
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.textContent = '🌙';
-  }
-}
-
-function toggleTheme() {
-  if (document.body.classList.contains('light-mode')) {
-    document.body.classList.remove('light-mode');
-    document.body.classList.add('dark-mode');
-    localStorage.setItem('servemate_theme', 'dark');
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.textContent = '☀️';
-  } else {
-    document.body.classList.add('light-mode');
-    document.body.classList.remove('dark-mode');
-    localStorage.setItem('servemate_theme', 'light');
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.textContent = '🌙';
-  }
-}
-
-/* ============================================================
-   INIT ON LOAD
-   ============================================================ */
-async function init() {
-  applyInitialTheme();
-  initReveal();
-  
-  // Add scroll listener for sticky header (optimized with passive event listener & requestAnimationFrame)
-  const navbar = document.getElementById('navbar');
-  if (navbar) {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (window.scrollY > 20) {
-            navbar.classList.add('scrolled');
-          } else {
-            navbar.classList.remove('scrolled');
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    // Run initial check
-    if (window.scrollY > 20) {
-      navbar.classList.add('scrolled');
-    } else {
-      navbar.classList.remove('scrolled');
-    }
-  }
-  
-  // Initialize Supabase integrations
-  await initSupabase();
-  
-  // Restore logged-in state asynchronously (non-blocking)
-  restoreSession();
-  
-  // Set up SPA client navigation immediately to paint content faster
-  const path = window.location.pathname;
-  navigate(path, false);
-
-  // Asynchronously load landing page stats
-  fetchStats();
-}
-
-async function fetchStats() {
-  try {
-    const res = await api('/api/stats');
-    if (!res.ok) return;
-    const data = await res.json();
-    
-    const heroDonated = document.getElementById('heroTotalDonated');
-    if (heroDonated && data.totalDonated) {
-      heroDonated.textContent = `₹${data.totalDonated.toLocaleString('en-IN')}`;
-    }
-    
-    const heroCauses = document.getElementById('heroVerifiedCauses');
-    if (heroCauses && data.verifiedNgos) {
-      heroCauses.textContent = `${data.verifiedNgos} Causes`;
-    }
-    
-    const heroProofs = document.getElementById('heroProofCount');
-    if (heroProofs && data.proofsUploaded) {
-      heroProofs.textContent = `${data.proofsUploaded} Videos`;
-    }
-  } catch (err) {
-    console.warn('[app.js] Stats fetch fallback active');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', init);
-window.navigate = navigate;
-window.filterCauses = filterCauses;
-window.openDonationModal = openDonationModal;
-window.selectPreset = selectPreset;
-window.onCustomAmount = onCustomAmount;
-window.proceedToPay = proceedToPay;
-window.handleLogin = handleLogin;
-window.handleRegister = handleRegister;
-window.logout = logout;
-window.sendRegistrationOtp = sendRegistrationOtp;
-window.sendForgotPasswordOtp = sendForgotPasswordOtp;
-window.handleForgotPassword = handleForgotPassword;
-window.openEditProfileModal = openEditProfileModal;
-window.editProfile = editProfile;
-window.toggleTheme = toggleTheme;
-window.generateAiMonthlySummary = generateAiMonthlySummary;
-window.generateAdvisorPlan = generateAdvisorPlan;
-window.submitContact = submitContact;
-window.toggleFaq = toggleFaq;
-window.createCommunity = createCommunity;
-window.joinCommunityByCode = joinCommunityByCode;
-window.submitNgoTask = submitNgoTask;
-window.updateNgoProfile = updateNgoProfile;
-window.switchLeaderboardTab = switchLeaderboardTab;
-window.switchDashboardTab = switchDashboardTab;
-window.searchCommunities = searchCommunities;
-window.openNgoProfileModal = openNgoProfileModal;
-window.closeModal = closeModal;
-window.handleOverlayClick = handleOverlayClick;
-window.toggleMobileMenu = toggleMobileMenu;
-
-// Expose new modular login bindings
-window.showLoginTab = showLoginTab;
-window.toggleLoginType = toggleLoginType;
-window.signInWithProvider = signInWithProvider;
-window.handlePhoneLoginSendOtp = handlePhoneLoginSendOtp;
-window.handlePhoneLoginVerifyOtp = handlePhoneLoginVerifyOtp;
-

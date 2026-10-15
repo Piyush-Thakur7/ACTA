@@ -20,6 +20,7 @@ app.set("trust proxy", 1);
 const PORT = process.env.PORT || 5000;
 
 const defaultCorsOrigins = [
+  "https://acta.resence.in",
   "https://www.resence.in",
   "https://resence.in",
   "https://serve-matemobile.vercel.app",
@@ -250,7 +251,7 @@ app.use((err, req, res, next) => {
 const { seedSupabase } = require("./backend/utils/supabaseSeed");
 
 app.listen(PORT, () => {
-  console.log(`[server] ServeMate backend listening on port ${PORT}`);
+  console.log(`[server] ACTA Platform backend listening on port ${PORT}`);
   console.log(`[server] CORS origins: ${allowedOrigins.join(", ")}`);
 });
 
