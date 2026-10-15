@@ -12,6 +12,7 @@ const { ADMIN_EMAIL } = require("./backend/utils/authUtils");
 const { router: authRouter } = require("./backend/routes/authRoutes");
 const apiRouter = require("./backend/routes/apiRoutes");
 const adminRouter = require("./backend/routes/adminRoutes");
+const ngoRouter = require("./backend/routes/ngoRoutes");
 const { apiLimiter } = require("./backend/src/middleware/rateLimit");
 
 const app = express();
@@ -104,6 +105,7 @@ app.use("/api", (req, res, next) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/ngo", ngoRouter);
 app.use("/api", apiRouter);
 app.use("/api/admin", adminRouter);
 
