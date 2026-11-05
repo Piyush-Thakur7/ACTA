@@ -265,15 +265,14 @@ body {
    EXECUTIVE FINTECH DASHBOARD HERO (PRD 4.1 Master Wireframe)
    ============================================================ */
 .dashboard-hero-card, .exec-hero-banner {
-  background: linear-gradient(135deg, #090D16 0%, #131A29 100%);
-  border-radius: var(--radius-lg);
+  background: radial-gradient(120% 120% at 50% 0%, #162032 0%, #0B111E 60%, #070A12 100%);
+  border-radius: 20px;
   padding: 34px 38px;
   color: #FFFFFF;
   margin: 28px 0 24px;
-  box-shadow: var(--shadow-elevated);
+  box-shadow: 0 20px 48px -12px rgba(11, 17, 30, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dashboard-hero-card::after, .exec-hero-banner::after {
@@ -281,10 +280,10 @@ body {
   position: absolute;
   top: -80px;
   right: -80px;
-  width: 280px;
-  height: 280px;
+  width: 320px;
+  height: 320px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.22) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.25) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -292,7 +291,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 20px;
   margin-bottom: 24px;
   flex-wrap: wrap;
@@ -311,19 +310,20 @@ body {
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .hero-student-org, .exec-student-sub {
   font-size: 0.82rem;
   color: #94A3B8;
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
 /* Master Financial Stats Bento */
 .hero-stats-grid, .exec-stats-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 18px;
+  gap: 16px;
   align-items: center;
 }
 
@@ -345,56 +345,59 @@ body {
 }
 
 .stat-primary-label, .stat-sub-label {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: #94A3B8;
   margin-bottom: 4px;
 }
 
 .stat-primary-value, .stat-big-number {
   font-family: var(--font-heading);
-  font-size: 2.8rem;
+  font-size: 2.7rem;
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 .stat-box, .stat-metric-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 18px;
   border-radius: var(--radius-md);
   transition: all 0.2s ease;
 }
 
 .stat-box:hover, .stat-metric-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .stat-box-val, .stat-metric-num {
   font-family: var(--font-heading);
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .stat-box-lbl, .stat-metric-tag {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #94A3B8;
   text-transform: uppercase;
   margin-top: 4px;
+  letter-spacing: 0.03em;
 }
 
 /* Giving Ladder Progress on Hero */
 .hero-xp-banner, .exec-progress-tray {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .xp-label-row, .progress-tray-labels {
@@ -408,7 +411,7 @@ body {
 .xp-bar-bg, .progress-track {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -433,6 +436,12 @@ body {
   gap: 6px;
   box-shadow: var(--shadow-subtle);
   overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pillar-tabs::-webkit-scrollbar, .pillar-selector-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .pillar-tab-btn, .pillar-tab-chip {
@@ -441,13 +450,18 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 18px;
+  padding: 11px 16px;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-size: 0.88rem;
   font-weight: 700;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s var(--ease);
+}
   font-family: var(--font-heading);
   cursor: pointer;
   white-space: nowrap;
