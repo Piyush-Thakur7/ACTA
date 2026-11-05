@@ -234,6 +234,13 @@
         <span class="badge badge-amber">Inter-Hostel Season 1</span>
       </div>
 
+      <div class="guild-filter-strip">
+        <button class="guild-filter-pill active" onclick="filterGuilds('all', event)">All Collegiate Guilds</button>
+        <button class="guild-filter-pill" onclick="filterGuilds('glbajaj', event)">GL Bajaj Campus</button>
+        <button class="guild-filter-pill" onclick="filterGuilds('hostels', event)">Hostels & Blocks</button>
+        <button class="guild-filter-pill" onclick="filterGuilds('top', event)">National Top 5</button>
+      </div>
+
       <div id="guildsLeaderboardList"></div>
     </section>
 
@@ -247,6 +254,32 @@
           <p style="font-size:0.85rem; color:var(--text-muted);">
             Full regulatory transparency under Section 79 IT Act 2000 and DPDP Act 2023.
           </p>
+        </div>
+      </div>
+
+      <!-- Interactive 95/5 Escrow Simulator -->
+      <div class="escrow-slider-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h3 style="font-size:1.2rem; margin-bottom:4px;">Interactive 95/5 Escrow Simulator</h3>
+            <p style="font-size:0.82rem; color:var(--text-muted);">Slide amount to simulate rupee-by-rupee programmatic escrow allocation.</p>
+          </div>
+          <div class="slider-val-display" id="sliderValDisplay">₹ 50</div>
+        </div>
+        <input type="range" id="escrowSlider" min="10" max="2500" step="10" value="50" style="width:100%; accent-color:var(--flame); cursor:pointer; height:8px;" oninput="updateEscrowSimulation(this.value)" />
+        <div class="calc-breakdown-grid">
+          <div class="calc-breakdown-box">
+            <div class="calc-box-num" style="color:var(--emerald);" id="simAidNum">₹ 45.00</div>
+            <div class="calc-box-lbl">90% Direct Cause Supplies (Wholesale Invoiced)</div>
+          </div>
+          <div class="calc-breakdown-box">
+            <div class="calc-box-num" style="color:var(--royal);" id="simNgoNum">₹ 2.50</div>
+            <div class="calc-box-lbl">5% NGO Ground Field Operations & Transport</div>
+          </div>
+          <div class="calc-breakdown-box">
+            <div class="calc-box-num" style="color:var(--text-muted);" id="simFeeNum">₹ 2.50</div>
+            <div class="calc-box-lbl">5% Escrow Verification & Server Node Fee</div>
+          </div>
         </div>
       </div>
 

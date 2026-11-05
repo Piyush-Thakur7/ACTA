@@ -128,11 +128,11 @@ const XP_LADDER = [
 
 // --- 3. CAMPUS GUILDS LEADERBOARD (PRD Section 10.3) ---
 const GUILDS_DATA = [
-  { rank: 1, name: "GL Bajaj Boys Hostel Block-B", college: "GL Bajaj Institute of Management", units: 840, members: 142, points: 8400 },
-  { rank: 2, name: "BCA Section 3C Changemakers", college: "GL Bajaj Institute of Management", units: 620, members: 98, points: 6200 },
-  { rank: 3, name: "B.Tech CSE Code4Good Clan", college: "GL Bajaj Group of Institutions", units: 580, members: 110, points: 5800 },
-  { rank: 4, name: "Sharda University Civic Club", college: "Sharda University, Greater Noida", units: 450, members: 76, points: 4500 },
-  { rank: 5, name: "Galgotias Rotaract Youth", college: "Galgotias University, Greater Noida", units: 390, members: 64, points: 3900 }
+  { rank: 1, name: "GL Bajaj Boys Hostel Block-B", college: "GL Bajaj Institute of Management", units: 840, members: 142, points: 8400, category: "hostels" },
+  { rank: 2, name: "BCA Section 3C Changemakers", college: "GL Bajaj Institute of Management", units: 620, members: 98, points: 6200, category: "glbajaj" },
+  { rank: 3, name: "B.Tech CSE Code4Good Clan", college: "GL Bajaj Group of Institutions", units: 580, members: 110, points: 5800, category: "glbajaj" },
+  { rank: 4, name: "Sharda University Civic Club", college: "Sharda University, Greater Noida", units: 450, members: 76, points: 4500, category: "top" },
+  { rank: 5, name: "Galgotias Rotaract Youth", college: "Galgotias University, Greater Noida", units: 390, members: 64, points: 3900, category: "top" }
 ];
 
 // --- 4. ITEMISED USER DONATION AUDIT TRAIL ---
@@ -337,11 +337,31 @@ function renderXpLadder() {
 // ============================================================
 // 9. RENDER CAMPUS GUILDS LEADERBOARD (PRD 10.3)
 // ============================================================
+let currentGuildFilter = 'all';
+
+function filterGuilds(category, event) {
+  currentGuildFilter = category;
+  const pills = document.querySelectorAll('.guild-filter-pill');
+  pills.forEach(p => p.classList.remove('active'));
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+  renderGuilds();
+}
+
 function renderGuilds() {
   const container = document.getElementById('guildsLeaderboardList');
   if (!container) return;
 
-  container.innerHTML = GUILDS_DATA.map(g => `
+  const filtered = GUILDS_DATA.filter(g => {
+    if (currentGuildFilter === 'all') return true;
+    if (currentGuildFilter === 'glbajaj') return g.college.includes("GL Bajaj");
+    if (currentGuildFilter === 'hostels') return g.name.toLowerCase().includes("hostel") || g.category === "hostels";
+    if (currentGuildFilter === 'top') return g.rank <= 5;
+    return true;
+  });
+
+  container.innerHTML = filtered.map(g => `
     <div class="guild-card">
       <div style="display:flex; align-items:center; gap:16px;">
         <div class="guild-rank">#${g.rank}</div>
@@ -359,6 +379,21 @@ function renderGuilds() {
       </div>
     </div>
   `).join('');
+}
+
+function updateEscrowSimulation(val) {
+  const amount = parseFloat(val) || 50;
+  const display = document.getElementById('sliderValDisplay');
+  if (display) display.textContent = `₹ ${amount.toFixed(0)}`;
+  const aid = (amount * 0.90).toFixed(2);
+  const ngo = (amount * 0.05).toFixed(2);
+  const fee = (amount * 0.05).toFixed(2);
+  const aidEl = document.getElementById('simAidNum');
+  if (aidEl) aidEl.textContent = `₹ ${aid}`;
+  const ngoEl = document.getElementById('simNgoNum');
+  if (ngoEl) ngoEl.textContent = `₹ ${ngo}`;
+  const feeEl = document.getElementById('simFeeNum');
+  if (feeEl) feeEl.textContent = `₹ ${fee}`;
 }
 
 // ============================================================
